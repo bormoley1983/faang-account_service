@@ -4,16 +4,13 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration
-@Testcontainers
 public class TestContainersConfig {
 
-    @Container
     private static final PostgreSQLContainer<?> POSTGRESQL_CONTAINER =
-            new PostgreSQLContainer<>("postgres:13.3")
+            new PostgreSQLContainer<>(DockerImageName.parse("postgres:13.3"))
                     .withDatabaseName("testdb")
                     .withUsername("user")
                     .withPassword("password");

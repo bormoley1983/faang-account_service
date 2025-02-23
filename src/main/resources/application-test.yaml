@@ -3,9 +3,6 @@ spring:
     hikari:
       maximum-pool-size: 1
     driver-class-name: org.postgresql.Driver
-    username: user
-    password: password
-
   jpa:
     properties:
       hibernate:
@@ -13,6 +10,5 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-
   liquibase:
     enabled: false
