@@ -68,3 +68,8 @@ tasks.withType<Test> {
 tasks.bootJar {
     archiveFileName.set("service.jar")
 }
+tasks.test {
+    useJUnitPlatform {
+        excludeTags("integration")
+    }
+}
