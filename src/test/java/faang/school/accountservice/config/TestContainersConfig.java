@@ -14,9 +14,9 @@ public class TestContainersConfig {
     @Container
     private static final PostgreSQLContainer<?> POSTGRESQL_CONTAINER =
             new PostgreSQLContainer<>("postgres:13.3")
-                    .withDatabaseName("test-db")
-                    .withUsername("test")
-                    .withPassword("test");
+                    .withDatabaseName("testdb")
+                    .withUsername("user")
+                    .withPassword("password");
 
     static {
         POSTGRESQL_CONTAINER.start();

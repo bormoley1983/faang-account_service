@@ -2,10 +2,10 @@ spring:
   datasource:
     hikari:
       maximum-pool-size: 1
-    url: jdbc:tc:postgresql:13.3:///test-db
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    username: test
-    password: test
+    driver-class-name: org.postgresql.Driver
+    username: user
+    password: password
+
   jpa:
     properties:
       hibernate:
@@ -13,5 +13,6 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
   liquibase:
     enabled: false
