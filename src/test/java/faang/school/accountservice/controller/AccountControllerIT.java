@@ -6,7 +6,6 @@ import faang.school.accountservice.enums.Currency;
 import faang.school.accountservice.model.Account;
 import faang.school.accountservice.repository.AccountRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,7 +20,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-//@Tag("integration")
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -52,7 +50,7 @@ public class AccountControllerIT {
     void testGetAccount() throws Exception {
         mockMvc.perform(get("/accounts/" + accountId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("x-user-id", "1")) // Передаем число вместо UUID
+                        .header("x-user-id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(accountId.toString()))
                 .andExpect(jsonPath("$.status").value("ACTIVE"));
