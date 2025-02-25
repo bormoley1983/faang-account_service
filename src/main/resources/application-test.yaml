@@ -1,12 +1,14 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/test-db
-    username: test
-    password: test
-    driver-class-name: org.postgresql.Driver
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
   liquibase:
-    enabled: false
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    drop-first: true
+
+logging:
+  level:
+    root: info

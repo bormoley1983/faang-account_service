@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
-
 @RequiredArgsConstructor
 @RequestMapping("/accounts")
 @RestController
@@ -25,7 +23,7 @@ public class AccountController {
     private final AccountMapper accountMapper = AccountMapper.INSTANCE;
 
     @GetMapping("/{id}")
-    public ResponseEntity<AccountDto> getAccount(@PathVariable UUID id) {
+    public ResponseEntity<AccountDto> getAccount(@PathVariable Long id) {
         Account account = accountService.getAccount(id);
         return ResponseEntity.ok(accountMapper.toDto(account));
     }
@@ -38,14 +36,14 @@ public class AccountController {
     }
 
     @PatchMapping("/{id}/block")
-    public ResponseEntity<AccountDto> blockAccount(@PathVariable UUID id) {
-        Account blockedAccount = accountService.blockAccount(id);
-        return ResponseEntity.ok(accountMapper.toDto(blockedAccount));
+    public ResponseEntity<AccountDto> blockAccount(@PathVariable Long id) {
+        Account account = accountService.blockAccount(id);
+        return ResponseEntity.ok(accountMapper.toDto(account));
     }
 
     @PatchMapping("/{id}/close")
-    public ResponseEntity<AccountDto> closeAccount(@PathVariable UUID id) {
-        Account closedAccount = accountService.closeAccount(id);
-        return ResponseEntity.ok(accountMapper.toDto(closedAccount));
+    public ResponseEntity<AccountDto> closeAccount(@PathVariable Long id) {
+        Account account = accountService.closeAccount(id);
+        return ResponseEntity.ok(accountMapper.toDto(account));
     }
 }

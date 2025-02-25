@@ -11,28 +11,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ContextConfiguration(classes = TestContainersConfig.class)
 @DataJpaTest
-public class AccountRepositoryIT {
+public class AccountRepositoryIT extends TestContainersConfig {
 
     @Autowired
     private AccountRepository accountRepository;
 
-    private UUID accountId;
+    private Long accountId;
 
     @BeforeEach
     void setUp() {
         Account account = new Account();
         account.setNumber("123456789012");
-        account.setOwnerId(UUID.randomUUID());
+        account.setOwnerId(1L);
         account.setStatus(AccountStatus.ACTIVE);
         account.setType(AccountType.SAVINGS);
         account.setCurrency(Currency.USD);

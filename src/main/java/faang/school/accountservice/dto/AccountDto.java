@@ -5,13 +5,11 @@ import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.enums.Currency;
 import lombok.Builder;
 
-import java.util.UUID;
-
 @Builder
 public record AccountDto(
-        UUID id,
+        Long id,
         String number,
-        UUID ownerId,
+        Long ownerId,
         AccountType type,
         Currency currency,
         AccountStatus status

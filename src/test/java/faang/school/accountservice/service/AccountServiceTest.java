@@ -10,7 +10,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -28,17 +27,17 @@ class AccountServiceTest {
     @InjectMocks
     private AccountService accountService;
 
-    private UUID accountId;
+    private Long accountId;
     private Account account;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        accountId = UUID.randomUUID();
+        accountId = 1L;
         account = new Account();
         account.setId(accountId);
         account.setNumber("123456789012");
-        account.setOwnerId(UUID.randomUUID());
+        account.setOwnerId(1L);
         account.setStatus(AccountStatus.ACTIVE);
     }
 

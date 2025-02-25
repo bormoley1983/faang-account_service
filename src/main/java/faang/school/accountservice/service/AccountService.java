@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
@@ -17,7 +16,7 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
 
-    public Account getAccount(UUID id) {
+    public Account getAccount(Long id) {
         return getAccountById(id);
     }
 
@@ -28,21 +27,21 @@ public class AccountService {
     }
 
     @Transactional
-    public Account blockAccount(UUID id) {
+    public Account blockAccount(Long id) {
         return updateAccountStatus(id, AccountStatus.FROZEN, null);
     }
 
     @Transactional
-    public Account closeAccount(UUID id) {
+    public Account closeAccount(Long id) {
         return updateAccountStatus(id, AccountStatus.CLOSED, LocalDateTime.now());
     }
 
-    private Account getAccountById(UUID id) {
+    private Account getAccountById(Long id) {
         return accountRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
     }
 
-    private Account updateAccountStatus(UUID id, AccountStatus status, LocalDateTime closedAt) {
+    private Account updateAccountStatus(Long id, AccountStatus status, LocalDateTime closedAt) {
         Account account = getAccountById(id);
         account.setStatus(status);
 

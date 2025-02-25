@@ -1,5 +1,6 @@
 package faang.school.accountservice.controller;
 
+import faang.school.accountservice.config.TestContainersConfig;
 import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.enums.Currency;
@@ -14,8 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.UUID;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @SpringBootTest
-public class AccountControllerIT {
+class AccountControllerIT extends TestContainersConfig {
 
     @Autowired
     private MockMvc mockMvc;
@@ -31,13 +30,13 @@ public class AccountControllerIT {
     @Autowired
     private AccountRepository accountRepository;
 
-    private UUID accountId;
+    private Long accountId;
 
     @BeforeEach
     void setUp() {
         Account account = new Account();
         account.setNumber("123456789012");
-        account.setOwnerId(UUID.randomUUID());
+        account.setOwnerId(1L);
         account.setStatus(AccountStatus.ACTIVE);
         account.setType(AccountType.SAVINGS);
         account.setCurrency(Currency.USD);
@@ -52,7 +51,7 @@ public class AccountControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("x-user-id", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(accountId.toString()))
+                .andExpect(jsonPath("$.id").value(accountId))
                 .andExpect(jsonPath("$.status").value("ACTIVE"));
     }
 }

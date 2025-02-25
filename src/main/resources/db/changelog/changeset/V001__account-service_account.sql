@@ -1,7 +1,7 @@
 CREATE TABLE account (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id BIGSERIAL PRIMARY KEY,
     number VARCHAR(20) NOT NULL UNIQUE CHECK (LENGTH(number) BETWEEN 12 AND 20),
-    owner_id UUID NOT NULL,
+    owner_id BIGINT NOT NULL,
     type VARCHAR(20) NOT NULL CHECK (type IN ('CHECKING', 'SAVINGS', 'CURRENCY')),
     currency VARCHAR(3) NOT NULL CHECK (currency IN ('RUB', 'EUR', 'USD')),
     status VARCHAR(10) NOT NULL CHECK (status IN ('ACTIVE', 'FROZEN', 'CLOSED')),
