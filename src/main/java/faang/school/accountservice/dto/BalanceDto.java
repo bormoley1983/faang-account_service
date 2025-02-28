@@ -1,5 +1,7 @@
 package faang.school.accountservice.dto;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +12,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Data
 public class BalanceDto {
-    private BigDecimal authorizedBalance;
-    private BigDecimal actualBalance;
+
+    @NotNull
+    @Positive
+    private Long accountId;
+
+    private BigDecimal authorizedBalance = BigDecimal.ZERO;
+    private BigDecimal actualBalance = BigDecimal.ZERO;
 }
