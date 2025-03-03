@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -50,6 +51,13 @@ public class Balance {
     @Version
     @Column(name = "version", nullable = false)
     private int version = 1;
+
+    @PrePersist
+    protected void onCreate() {
+        this.version = 1;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 
     @PreUpdate
     protected void onUpdate() {
