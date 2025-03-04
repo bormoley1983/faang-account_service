@@ -17,7 +17,7 @@ public class BalanceListener {
     private final BalanceAuditRepository balanceAuditRepository;
     private final BalanceMapper balanceMapper;
 
-    public BalanceListener(@Lazy BalanceAuditRepository balanceAuditRepository, BalanceMapper balanceMapper) {
+    public BalanceListener(@Lazy BalanceAuditRepository balanceAuditRepository, @Lazy BalanceMapper balanceMapper) {
         this.balanceAuditRepository = balanceAuditRepository;
         this.balanceMapper = balanceMapper;
     }
