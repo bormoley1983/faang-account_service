@@ -1,4 +1,8 @@
 spring:
+  datasource:
+    hikari:
+      maxLifetime: 30000
+
   task:
     scheduling:
       enabled: true

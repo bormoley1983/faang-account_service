@@ -6,4 +6,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/changeset/V003__create_table_balance_audit.sql
   - include:
-      file: db/changelog/changeset/V004__account-service_account.sql    
+      file: db/changelog/changeset/V004__account-service_account.sql
+  - include:
+      file: db/changelog/changeset/V005__savings_account.sql

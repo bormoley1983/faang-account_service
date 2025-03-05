@@ -19,5 +19,20 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Ensure Docker is running
+        run: |
+          sudo systemctl start docker
+          sleep 5
+          docker info
+
+      - name: Set Testcontainers env variables
+        run: |
+          echo "TESTCONTAINERS_RYUK_DISABLED=true" >> $GITHUB_ENV
+          echo "TESTCONTAINERS_CHECKS_DISABLE=true" >> $GITHUB_ENV
+          echo "DOCKER_HOST=unix:///var/run/docker.sock" >> $GITHUB_ENV
+
+      - name: Clean build
+        run: ./gradlew clean
+
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test --no-daemon
