@@ -2,7 +2,6 @@ package faang.school.accountservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import faang.school.accountservice.config.context.UserContext;
-import faang.school.accountservice.dto.BalanceDto;
 import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.enums.Currency;
@@ -30,6 +29,9 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Import({BalanceService.class, BalanceMapperImpl.class})
 @Testcontainers
@@ -81,6 +83,7 @@ public class BalanceControllerIT {
                 .account(testAccount)
                 .actualBalance(new BigDecimal("100.00"))
                 .authorizedBalance(BigDecimal.ZERO)
+                .version(1)
                 .build();
 
         Mockito.when(balanceRepository.findByAccountId(1L)).thenReturn(testBalance);
@@ -99,32 +102,24 @@ public class BalanceControllerIT {
     }
 
     @Test
-    public void testCreateBalance() throws Exception {
-        BalanceDto balanceDto = new BalanceDto(1L, BigDecimal.ZERO, new BigDecimal("200.00"));
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/balance")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(balanceDto)))
+    public void testCreditBalance() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/credits", 1)
+                        .param("amount", "50.00"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.accountId").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.actualBalance").value("200.0"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.authorizedBalance").value("0"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.actualBalance").value("150.0"));
     }
 
     @Test
-    public void testUpdateBalance() throws Exception {
-        BalanceDto updatedBalanceDto = new BalanceDto(1L, BigDecimal.ZERO, new BigDecimal("300.00"));
-
-        mockMvc.perform(MockMvcRequestBuilders.patch("/balance")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatedBalanceDto)))
+    public void testDebitBalance() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/debits", 1)
+                        .param("amount", "50.00"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.actualBalance").value("300.0"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.actualBalance").value("50.0"));
     }
 
     @Test
-    public void testAuthorizePayment() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/authorize", 1)
+    public void testAuthorizeAmount() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/authorizations", 1)
                         .param("amount", "50.00"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.authorizedBalance").value("50.0"))
@@ -132,10 +127,10 @@ public class BalanceControllerIT {
     }
 
     @Test
-    public void testCapturePayment() throws Exception {
+    public void testCommitAuthorization() throws Exception {
         testBalance.setAuthorizedBalance(new BigDecimal("50.00"));
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/capture", 1)
+        mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/authorizations/commit", 1)
                         .param("amount", "50.00"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.authorizedBalance").value("0.0"))
@@ -146,10 +141,45 @@ public class BalanceControllerIT {
     public void testCancelAuthorization() throws Exception {
         testBalance.setAuthorizedBalance(new BigDecimal("50.00"));
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/cancel-authorization", 1)
+        mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/authorizations/cancel", 1)
                         .param("amount", "50.00"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.authorizedBalance").value("0.0"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.actualBalance").value("100.0"));
+    }
+
+    @Test
+    public void testOptimisticLockingOnConcurrentDebits() throws Exception {
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        CountDownLatch latch = new CountDownLatch(2);
+
+        Mockito.when(balanceRepository.findByAccountId(1L))
+                .thenAnswer(invocation -> {
+                    Balance balance = Balance.builder()
+                            .id(1L)
+                            .account(testBalance.getAccount())
+                            .actualBalance(testBalance.getActualBalance())
+                            .authorizedBalance(testBalance.getAuthorizedBalance())
+                            .version(testBalance.getVersion())
+                            .build();
+                    return balance;
+                });
+
+        Runnable task = () -> {
+            try {
+                mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/debits", 1)
+                                .param("amount", "60.00"))
+                        .andExpect(MockMvcResultMatchers.status().isConflict());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            } finally {
+                latch.countDown();
+            }
+        };
+
+        executor.submit(task);
+        executor.submit(task);
+        latch.await();
+        executor.shutdown();
     }
 }

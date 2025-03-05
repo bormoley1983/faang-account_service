@@ -21,51 +21,43 @@ public class BalanceService {
     }
 
     @Transactional
-    public Balance createBalance(Balance balance) {
-        Long accountId = balance.getAccount().getId();
+    public Balance createBalance(long accountId) {
         if (balanceRepository.existsByAccountId(accountId)) {
             throw new IllegalStateException("Balance for this account already exists.");
         }
 
         Account account = accountService.getAccount(accountId);
-        balance.setAccount(account);
+        Balance balance = Balance.builder()
+                .account(account)
+                .build();
 
         return balanceRepository.save(balance);
     }
 
     @Transactional
-    public Balance updateBalance(Balance newBalance) {
-        Long accountId = newBalance.getAccount().getId();
-        Balance actualBalance = balanceRepository.findByAccountId(accountId);
-
-        actualBalance.setAuthorizedBalance(newBalance.getAuthorizedBalance());
-        actualBalance.setActualBalance(newBalance.getActualBalance());
-
-        return balanceRepository.save(actualBalance);
-    }
-
-    @Transactional
-    public Balance authorizePayment(long accountId, BigDecimal amount) {
+    public Balance authorizeAmount(long accountId, BigDecimal amount) {
         Balance balance = balanceRepository.findByAccountId(accountId);
 
-        if (balance.getActualBalance().subtract(balance.getAuthorizedBalance()).compareTo(amount) < 0) {
-            throw new IllegalStateException("Insufficient funds for authorization.");
+        BigDecimal currentActualBalance = balance.getActualBalance().subtract(balance.getAuthorizedBalance());
+        if(currentActualBalance.compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient funds");
         }
 
-        balance.setAuthorizedBalance(balance.getAuthorizedBalance().add(amount));
+        BigDecimal newAuthorizedBalance = balance.getAuthorizedBalance().add(amount);
+        balance.setAuthorizedBalance(newAuthorizedBalance);
+
         return balanceRepository.save(balance);
     }
 
     @Transactional
-    public Balance capturePayment(long accountId, BigDecimal amount) {
+    public Balance commitAuthorization(long accountId, BigDecimal amount) {
         Balance balance = balanceRepository.findByAccountId(accountId);
 
-        if (balance.getAuthorizedBalance().compareTo(amount) < 0) {
-            throw new IllegalStateException("Not enough authorized balance.");
-        }
+        BigDecimal newAuthorizedBalance = balance.getAuthorizedBalance().subtract(amount);
+        BigDecimal newActualBalance = balance.getActualBalance().subtract(amount);
+        balance.setAuthorizedBalance(newAuthorizedBalance);
+        balance.setActualBalance(newActualBalance);
 
-        balance.setAuthorizedBalance(balance.getAuthorizedBalance().subtract(amount));
-        balance.setActualBalance(balance.getActualBalance().subtract(amount));
         return balanceRepository.save(balance);
     }
 
@@ -73,11 +65,34 @@ public class BalanceService {
     public Balance cancelAuthorization(long accountId, BigDecimal amount) {
         Balance balance = balanceRepository.findByAccountId(accountId);
 
-        if (balance.getAuthorizedBalance().compareTo(amount) < 0) {
-            throw new IllegalStateException("Not enough authorized balance to cancel.");
+        BigDecimal newAuthorizedBalance = balance.getAuthorizedBalance().subtract(amount);
+        balance.setAuthorizedBalance(newAuthorizedBalance);
+
+        return balanceRepository.save(balance);
+    }
+
+    @Transactional
+    public Balance creditBalance(long accountId, BigDecimal amount) {
+        Balance balance = balanceRepository.findByAccountId(accountId);
+
+        BigDecimal newActualBalance = balance.getActualBalance().add(amount);
+        balance.setActualBalance(newActualBalance);
+
+        return balanceRepository.save(balance);
+    }
+
+    @Transactional
+    public Balance debitBalance(long accountId, BigDecimal amount) {
+        Balance balance = balanceRepository.findByAccountId(accountId);
+
+        BigDecimal currentActualBalance = balance.getActualBalance().subtract(balance.getAuthorizedBalance());
+        if(currentActualBalance.compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient funds");
         }
 
-        balance.setAuthorizedBalance(balance.getAuthorizedBalance().subtract(amount));
+        BigDecimal newActualBalance = balance.getActualBalance().subtract(amount);
+        balance.setActualBalance(newActualBalance);
+
         return balanceRepository.save(balance);
     }
 }

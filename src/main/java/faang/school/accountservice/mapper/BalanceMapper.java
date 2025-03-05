@@ -10,7 +10,4 @@ import org.mapstruct.ReportingPolicy;
 public interface BalanceMapper {
     @Mapping(source = "account.id", target = "accountId")
     BalanceDto toDto(Balance balance);
-
-    @Mapping(target = "account", expression = "java(Account.builder().id(balanceDto.getAccountId()).build())")
-    Balance toEntity(BalanceDto balanceDto);
 }

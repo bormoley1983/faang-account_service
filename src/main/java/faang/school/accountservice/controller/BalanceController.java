@@ -4,6 +4,9 @@ import faang.school.accountservice.dto.BalanceDto;
 import faang.school.accountservice.mapper.BalanceMapper;
 import faang.school.accountservice.model.Balance;
 import faang.school.accountservice.service.BalanceService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,46 +35,45 @@ public class BalanceController {
         return ResponseEntity.ok(balanceDto);
     }
 
-    @PostMapping
-    public ResponseEntity<BalanceDto> createBalance(@RequestBody BalanceDto balanceDto) {
-        Balance newBalance = balanceMapper.toEntity(balanceDto);
-        Balance actualBalance = balanceService.createBalance(newBalance);
-        BalanceDto actualBalanceDto = balanceMapper.toDto(actualBalance);
-        return ResponseEntity.ok(actualBalanceDto);
+    @PostMapping("/{accountId}")
+    public ResponseEntity<BalanceDto> createBalance(@PathVariable long accountId) {
+        Balance balance = balanceService.createBalance(accountId);
+        BalanceDto balanceDto = balanceMapper.toDto(balance);
+        return ResponseEntity.ok(balanceDto);
     }
 
-    @PatchMapping
-    public ResponseEntity<BalanceDto> updateBalance(@RequestBody BalanceDto balanceDto) {
-        Balance newBalance = balanceMapper.toEntity(balanceDto);
-        Balance actualBalance = balanceService.updateBalance(newBalance);
-        BalanceDto actualBalanceDto = balanceMapper.toDto(actualBalance);
-        return ResponseEntity.ok(actualBalanceDto);
+    @PostMapping("/{accountId}/authorizations")
+    public ResponseEntity<BalanceDto> authorizeAmount(@PathVariable long accountId, @RequestParam @Valid @Positive BigDecimal amount) {
+        Balance balance = balanceService.authorizeAmount(accountId, amount);
+        BalanceDto balanceDto = balanceMapper.toDto(balance);
+        return ResponseEntity.ok(balanceDto);
     }
 
-    @PostMapping("/{accountId}/authorize")
-    public ResponseEntity<BalanceDto> authorizePayment(
-            @PathVariable long accountId,
-            @RequestParam BigDecimal amount
-    ) {
-        Balance balance = balanceService.authorizePayment(accountId, amount);
-        return ResponseEntity.ok(balanceMapper.toDto(balance));
+    @PostMapping("/{accountId}/authorizations/commit")
+    public ResponseEntity<BalanceDto> commitAuthorization(@PathVariable long accountId, @RequestParam @Valid @Positive BigDecimal amount) {
+        Balance balance = balanceService.commitAuthorization(accountId, amount);
+        BalanceDto balanceDto = balanceMapper.toDto(balance);
+        return ResponseEntity.ok(balanceDto);
     }
 
-    @PostMapping("/{accountId}/capture")
-    public ResponseEntity<BalanceDto> capturePayment(
-            @PathVariable long accountId,
-            @RequestParam BigDecimal amount
-    ) {
-        Balance balance = balanceService.capturePayment(accountId, amount);
-        return ResponseEntity.ok(balanceMapper.toDto(balance));
-    }
-
-    @PostMapping("/{accountId}/cancel-authorization")
-    public ResponseEntity<BalanceDto> cancelAuthorization(
-            @PathVariable long accountId,
-            @RequestParam BigDecimal amount
-    ) {
+    @PostMapping("/{accountId}/authorizations/cancel")
+    public ResponseEntity<BalanceDto> cancelAuthorization(@PathVariable long accountId, @RequestParam @Valid @Positive BigDecimal amount) {
         Balance balance = balanceService.cancelAuthorization(accountId, amount);
-        return ResponseEntity.ok(balanceMapper.toDto(balance));
+        BalanceDto balanceDto = balanceMapper.toDto(balance);
+        return ResponseEntity.ok(balanceDto);
+    }
+
+    @PostMapping("/{accountId}/credits")
+    public ResponseEntity<BalanceDto> creditBalance(@PathVariable long accountId, @RequestParam @Valid @Positive BigDecimal amount) {
+        Balance balance = balanceService.creditBalance(accountId, amount);
+        BalanceDto balanceDto = balanceMapper.toDto(balance);
+        return ResponseEntity.ok(balanceDto);
+    }
+
+    @PostMapping("/{accountId}/debits")
+    public ResponseEntity<BalanceDto> debitBalance(@PathVariable long accountId, @RequestParam @Valid @Positive BigDecimal amount) {
+        Balance balance = balanceService.debitBalance(accountId, amount);
+        BalanceDto balanceDto = balanceMapper.toDto(balance);
+        return ResponseEntity.ok(balanceDto);
     }
 }

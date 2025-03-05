@@ -37,10 +37,10 @@ public class Balance {
     private Account account;
 
     @Column(name = "authorized_balance", nullable = false)
-    private BigDecimal authorizedBalance = BigDecimal.ZERO;
+    private BigDecimal authorizedBalance;
 
     @Column(name = "actual_balance", nullable = false)
-    private BigDecimal actualBalance = BigDecimal.ZERO;
+    private BigDecimal actualBalance;
 
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
@@ -50,11 +50,13 @@ public class Balance {
 
     @Version
     @Column(name = "version", nullable = false)
-    private int version = 1;
+    private int version;
 
     @PrePersist
     protected void onCreate() {
         this.version = 1;
+        this.authorizedBalance = BigDecimal.ZERO;
+        this.actualBalance = BigDecimal.ZERO;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

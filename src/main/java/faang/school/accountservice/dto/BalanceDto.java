@@ -15,8 +15,15 @@ public class BalanceDto {
 
     @NotNull
     @Positive
+    private Long id;
+
+    @NotNull
+    @Positive
     private Long accountId;
 
-    private BigDecimal authorizedBalance = BigDecimal.ZERO;
-    private BigDecimal actualBalance = BigDecimal.ZERO;
+    @Positive
+    private BigDecimal authorizedBalance;
+
+    @Positive
+    private BigDecimal actualBalance;
 }
