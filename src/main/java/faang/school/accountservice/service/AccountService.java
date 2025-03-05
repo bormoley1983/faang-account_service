@@ -26,53 +26,58 @@ public class AccountService {
     }
 
     public List<AccountDto> getAllAccounts() {
-        List<Account> accounts = accountRepository.findAll();
-        if (accounts.isEmpty()) {
-            return List.of();
-        }
-        return accounts.stream()
-                .map(accountMapper::toDto).toList();
+        return accountRepository.findAll().stream()
+                .map(accountMapper::toDto)
+                .toList();
     }
 
     @Transactional
     public AccountDto createAccount(AccountDto accountDto) {
         Account account = accountMapper.toEntity(accountDto);
-        account.setStatus(Status.ACTIVE);
-        Account savedAccount = accountRepository.save(account);
-        return accountMapper.toDto(savedAccount);
+        return updateAccountStatusAndVersion(account, Status.ACTIVE);
     }
 
     @Transactional
     public AccountDto activateAccount(Long accountId) {
         Account account = getAccountById(accountId);
-        account.setStatus(Status.ACTIVE);
-        account.setVersion(account.getVersion() + 1);
-        Account savedAccount = accountRepository.save(account);
-        return accountMapper.toDto(savedAccount);
+        return updateAccountStatusAndVersion(account, Status.ACTIVE);
     }
 
     @Transactional
     public AccountDto blockAccount(Long accountId) {
         Account account = getAccountById(accountId);
-        account.setStatus(Status.FROZEN);
-        account.setVersion(account.getVersion() + 1);
-        Account savedAccount = accountRepository.save(account);
-        return accountMapper.toDto(savedAccount);
+        return updateAccountStatusAndVersion(account, Status.FROZEN);
     }
 
     @Transactional
     public AccountDto closeAccount(Long accountId) {
         Account account = getAccountById(accountId);
-        account.setStatus(Status.CLOSED);
-        account.setVersion(account.getVersion() + 1);
-        account.setClosedAt(LocalDateTime.now());
-        Account savedAccount = accountRepository.save(account);
-        return accountMapper.toDto(savedAccount);
+        return updateAccountStatusAndVersion(account, Status.CLOSED);
     }
 
     private Account getAccountById(Long accountId) {
         return accountRepository.findById(accountId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         String.format("Аккаунт с id %d не найден", accountId)));
+    }
+
+    private AccountDto updateAccountStatusAndVersion(Account account, Status status) {
+        validateStatusTransition(account.getStatus(), status);
+        account.setStatus(status);
+        account.setVersion(account.getVersion() + 1);
+        if (status == Status.CLOSED) {
+            account.setClosedAt(LocalDateTime.now());
+        }
+        Account savedAccount = accountRepository.save(account);
+        return accountMapper.toDto(savedAccount);
+    }
+
+    private void validateStatusTransition(Status currentStatus, Status newStatus) {
+        if (currentStatus == Status.CLOSED) {
+            throw new IllegalStateException("Нельзя изменить статус закрытого аккаунта.");
+        }
+        if (currentStatus == newStatus) {
+            throw new IllegalArgumentException("Текущий статус совпадает с новым статусом.");
+        }
     }
 }
