@@ -20,4 +20,12 @@ jobs:
           distribution: 'temurin'
 
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test --info --stacktrace
+        continue-on-error: false
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: build/reports/tests/test
