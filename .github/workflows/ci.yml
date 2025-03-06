@@ -20,8 +20,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Run tests
-        run: ./gradlew test --info --stacktrace
-        continue-on-error: false
+        run: ./gradlew test
 
       - name: Upload Test Reports
         if: always()
