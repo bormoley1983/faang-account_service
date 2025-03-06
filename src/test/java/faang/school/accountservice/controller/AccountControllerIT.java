@@ -1,5 +1,6 @@
 package faang.school.accountservice.controller;
 
+import faang.school.accountservice.config.TestContainersConfig;
 import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.model.Account;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @SpringBootTest
-class AccountControllerIT {
+class AccountControllerIT extends TestContainersConfig {
 
     @Autowired
     private MockMvc mockMvc;
