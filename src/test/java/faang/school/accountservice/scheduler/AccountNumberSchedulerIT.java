@@ -1,0 +1,82 @@
+package faang.school.accountservice.scheduler;
+
+import faang.school.accountservice.enums.AccountType;
+import faang.school.accountservice.model.AccountSeq;
+import faang.school.accountservice.repository.AccountSeqRepository;
+import faang.school.accountservice.repository.FreeAccountRepository;
+import faang.school.accountservice.service.FreeAccountNumberService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@ActiveProfiles("test")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@SpringBootTest
+public class AccountNumberSchedulerIT {
+
+    @Autowired
+    private AccountNumberScheduler accountNumberScheduler;
+
+    @Autowired
+    private FreeAccountNumberService freeAccountNumberService;
+
+    @Autowired
+    private FreeAccountRepository freeAccountRepository;
+
+    @Autowired
+    private AccountSeqRepository accountSeqRepository;
+
+    @BeforeEach
+    void setUp() {
+        freeAccountRepository.deleteAll();
+        accountSeqRepository.deleteAll();
+
+        for (AccountType type : AccountType.values()) {
+            accountSeqRepository.save(new AccountSeq(type, type.getBaseNumber()));
+        }
+    }
+
+    @Test
+    @Transactional
+    void testSchedulerCreatesRequiredAccounts() {
+        for (AccountType type : AccountType.values()) {
+            freeAccountNumberService.ensureSufficientAccountNumbers(type);
+            long count = freeAccountRepository.countByType(type);
+            assertThat(count)
+                    .as("Check generated account numbers for type: " + type)
+                    .isGreaterThan(0);
+        }
+    }
+
+    @Test
+    @Transactional
+    void testSchedulerDoesNotCreateDuplicates() {
+        for (AccountType type : AccountType.values()) {
+            freeAccountNumberService.ensureSufficientAccountNumbers(type);
+        }
+
+        long initialCount = freeAccountRepository.count();
+        System.out.println("🔍 Initial count in free_account_numbers: " + initialCount);
+
+        // Запускаем шедулер второй раз
+        accountNumberScheduler.generateAccounts();
+
+        for (AccountType type : AccountType.values()) {
+            freeAccountNumberService.ensureSufficientAccountNumbers(type);
+        }
+
+        long countAfterSecondRun = freeAccountRepository.count();
+        System.out.println("🔍 Count after second run: " + countAfterSecondRun);
+
+        // Если числа разные – значит, дубликаты создались!
+        assertThat(countAfterSecondRun)
+                .as("🚨 Check that no duplicate accounts are created")
+                .isEqualTo(initialCount);
+    }
+}

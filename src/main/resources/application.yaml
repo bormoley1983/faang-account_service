@@ -23,3 +23,8 @@ server:
 logging:
   level:
     root: info
+
+account:
+  number:
+    min-free: 10
+    batch-size: 5
