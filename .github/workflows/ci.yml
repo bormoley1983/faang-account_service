@@ -21,10 +21,3 @@ jobs:
 
       - name: Run tests
         run: ./gradlew test
-
-      - name: Upload Test Reports
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-reports
-          path: build/reports/tests/test
