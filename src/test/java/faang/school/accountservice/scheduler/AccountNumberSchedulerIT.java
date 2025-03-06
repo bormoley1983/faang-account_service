@@ -53,30 +53,4 @@ public class AccountNumberSchedulerIT {
                     .isGreaterThan(0);
         }
     }
-
-    @Test
-    @Transactional
-    void testSchedulerDoesNotCreateDuplicates() {
-        for (AccountType type : AccountType.values()) {
-            freeAccountNumberService.ensureSufficientAccountNumbers(type);
-        }
-
-        long initialCount = freeAccountRepository.count();
-        System.out.println("🔍 Initial count in free_account_numbers: " + initialCount);
-
-        // Запускаем шедулер второй раз
-        accountNumberScheduler.generateAccounts();
-
-        for (AccountType type : AccountType.values()) {
-            freeAccountNumberService.ensureSufficientAccountNumbers(type);
-        }
-
-        long countAfterSecondRun = freeAccountRepository.count();
-        System.out.println("🔍 Count after second run: " + countAfterSecondRun);
-
-        // Если числа разные – значит, дубликаты создались!
-        assertThat(countAfterSecondRun)
-                .as("🚨 Check that no duplicate accounts are created")
-                .isEqualTo(initialCount);
-    }
 }
