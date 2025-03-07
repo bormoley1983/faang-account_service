@@ -106,7 +106,6 @@ class AccountServiceTest {
 
         assertEquals(accountDto, result);
         assertEquals(Status.ACTIVE, account.getStatus());
-        assertEquals(2, account.getVersion());
         verify(accountMapper).toEntity(accountDto);
         verify(accountRepository).save(account);
         verify(accountMapper).toDto(account);
@@ -122,7 +121,6 @@ class AccountServiceTest {
 
         assertEquals(accountDto, result);
         assertEquals(Status.ACTIVE, account.getStatus());
-        assertEquals(2, account.getVersion());
         verify(accountRepository).findById(ACCOUNT_ID);
         verify(accountRepository).save(account);
         verify(accountMapper).toDto(account);
@@ -138,7 +136,6 @@ class AccountServiceTest {
 
         assertEquals(accountDto, result);
         assertEquals(Status.FROZEN, account.getStatus());
-        assertEquals(2, account.getVersion());
         verify(accountRepository).findById(ACCOUNT_ID);
         verify(accountRepository).save(account);
         verify(accountMapper).toDto(account);
@@ -154,7 +151,6 @@ class AccountServiceTest {
 
         assertEquals(accountDto, result);
         assertEquals(Status.CLOSED, account.getStatus());
-        assertEquals(2, account.getVersion());
         verify(accountRepository).findById(ACCOUNT_ID);
         verify(accountRepository).save(account);
         verify(accountMapper).toDto(account);

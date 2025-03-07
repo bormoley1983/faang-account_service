@@ -34,25 +34,25 @@ public class AccountService {
     @Transactional
     public AccountDto createAccount(AccountDto accountDto) {
         Account account = accountMapper.toEntity(accountDto);
-        return updateAccountStatusAndVersion(account, Status.ACTIVE);
+        return updateAccountStatus(account, Status.ACTIVE);
     }
 
     @Transactional
     public AccountDto activateAccount(Long accountId) {
         Account account = getAccountById(accountId);
-        return updateAccountStatusAndVersion(account, Status.ACTIVE);
+        return updateAccountStatus(account, Status.ACTIVE);
     }
 
     @Transactional
     public AccountDto blockAccount(Long accountId) {
         Account account = getAccountById(accountId);
-        return updateAccountStatusAndVersion(account, Status.FROZEN);
+        return updateAccountStatus(account, Status.FROZEN);
     }
 
     @Transactional
     public AccountDto closeAccount(Long accountId) {
         Account account = getAccountById(accountId);
-        return updateAccountStatusAndVersion(account, Status.CLOSED);
+        return updateAccountStatus(account, Status.CLOSED);
     }
 
     private Account getAccountById(Long accountId) {
@@ -61,10 +61,9 @@ public class AccountService {
                         String.format("Аккаунт с id %d не найден", accountId)));
     }
 
-    private AccountDto updateAccountStatusAndVersion(Account account, Status status) {
+    private AccountDto updateAccountStatus(Account account, Status status) {
         validateStatusTransition(account.getStatus(), status);
         account.setStatus(status);
-        account.setVersion(account.getVersion() + 1);
         if (status == Status.CLOSED) {
             account.setClosedAt(LocalDateTime.now());
         }
@@ -77,7 +76,8 @@ public class AccountService {
             throw new IllegalStateException("Нельзя изменить статус закрытого аккаунта.");
         }
         if (currentStatus == newStatus) {
-            throw new IllegalArgumentException("Текущий статус совпадает с новым статусом.");
+            throw new IllegalArgumentException(String
+                    .format("Данный аккаунт имеет такой же статус - %s", currentStatus));
         }
     }
 }
