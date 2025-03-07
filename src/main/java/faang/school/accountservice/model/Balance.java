@@ -71,6 +71,13 @@ public class Balance {
         this.updatedAt = LocalDateTime.now();
     }
 
+    @PrePersist
+    protected void onCreate() {
+        this.version = 1;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
