@@ -1,5 +1,6 @@
 package faang.school.accountservice.scheduler;
 
+import faang.school.accountservice.config.TestContainersConfig;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.model.AccountSeq;
 import faang.school.accountservice.repository.AccountSeqRepository;
@@ -18,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SpringBootTest
-public class AccountNumberSchedulerIT {
+public class AccountNumberSchedulerIT extends TestContainersConfig {
 
     @Autowired
     private AccountNumberScheduler accountNumberScheduler;
