@@ -5,6 +5,8 @@ import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.model.Account;
 import faang.school.accountservice.repository.AccountRepository;
+import faang.school.accountservice.repository.FreeAccountRepository;
+import faang.school.accountservice.service.FreeAccountNumberService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -37,25 +38,43 @@ class AccountControllerIT extends TestContainersConfig {
     @Autowired
     private AccountRepository accountRepository;
 
+    @Autowired
+    private FreeAccountRepository freeAccountRepository;
+
+    @Autowired
+    private FreeAccountNumberService freeAccountNumberService;
+
     private Long accountId;
 
     @BeforeEach
     void setUp() {
-        if (accountRepository.count() == 0) {
-            Account account = Account.builder()
-                    .number("123456789012")
-                    .ownerId(1L)
-                    .type(AccountType.CHECKING)
-                    .currency(faang.school.accountservice.enums.Currency.EUR)
-                    .status(AccountStatus.ACTIVE)
-                    .build();
-            accountRepository.save(account);
-        }
+        accountRepository.deleteAll(); // Очищаем БД перед каждым тестом
 
-        assertThat(accountRepository.count()).isGreaterThan(0);
+        // Создаём тестовый аккаунт
+        Account account = Account.builder()
+                .number("123456789012")
+                .ownerId(1L)
+                .type(AccountType.CHECKING)
+                .currency(faang.school.accountservice.enums.Currency.EUR)
+                .status(AccountStatus.ACTIVE)
+                .build();
 
-        Account account = accountRepository.findAll().get(0);
+        account = accountRepository.saveAndFlush(account);
         accountId = account.getId();
+
+        ensureTestAccountNumbers(); // Проверяем, есть ли свободные номера
+
+        System.out.println("Создан аккаунт ID: " + accountId);
+        assertThat(accountId).isNotNull();
+    }
+
+    // Метод для проверки и генерации свободных номеров перед тестами
+    void ensureTestAccountNumbers() {
+        int freeCount = freeAccountRepository.countByType(AccountType.CHECKING);
+        if (freeCount < 10) { // Генерируем номера, если их недостаточно
+            System.out.println("Генерация дополнительных номеров счетов...");
+            freeAccountNumberService.generateAccountNumbers(AccountType.CHECKING, 10);
+        }
     }
 
     @Test
@@ -68,7 +87,6 @@ class AccountControllerIT extends TestContainersConfig {
     }
 
     @Test
-    @Transactional
     void testCreateAccount() throws Exception {
         String accountJson = """
                 {

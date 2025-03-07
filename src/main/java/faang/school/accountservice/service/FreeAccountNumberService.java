@@ -34,12 +34,10 @@ public class FreeAccountNumberService {
     @Transactional
     public void ensureSufficientAccountNumbers(AccountType type) {
         int availableNumbers = freeAccountRepository.countByType(type);
-        log.info(" [{}] Checking available free account numbers for type {}: {}",
-                Thread.currentThread().getId(), type, availableNumbers);
+        log.info("Available free account numbers for type {}: {}", type, availableNumbers);
 
         if (availableNumbers < minFreeNumbers) {
-            log.info(" [{}] Generating more account numbers for type {}",
-                    Thread.currentThread().getId(), type);
+            log.info("Generating more account numbers for type {}", type);
             generateAccountNumbers(type, generationBatchSize);
         }
     }
