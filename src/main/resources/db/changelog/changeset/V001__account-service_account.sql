@@ -1,10 +1,10 @@
-CREATE TABLE IF NOT EXISTS account (
+CREATE TABLE account (
     id BIGSERIAL PRIMARY KEY,
     number VARCHAR(20) NOT NULL UNIQUE CHECK (LENGTH(number) BETWEEN 12 AND 20),
     owner_id BIGINT NOT NULL,
-    type VARCHAR(20) NOT NULL CHECK (type IN ('CHECKING', 'SAVINGS', 'CURRENCY', 'DEBIT')),
-    currency VARCHAR(3) NOT NULL CHECK (currency IN ('RUB', 'EUR', 'USD')),
-    status VARCHAR(10) NOT NULL CHECK (status IN ('ACTIVE', 'FROZEN', 'CLOSED')),
+    type VARCHAR(20) NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    status VARCHAR(10) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     updated_at TIMESTAMP NOT NULL DEFAULT now(),
     closed_at TIMESTAMP NULL,

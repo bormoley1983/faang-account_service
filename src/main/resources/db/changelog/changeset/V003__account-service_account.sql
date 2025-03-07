@@ -15,9 +15,6 @@ DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'balance') THEN
         ALTER TABLE balance
-            ALTER COLUMN account_number TYPE BIGINT USING account_number::BIGINT;
-
-        ALTER TABLE balance
-            ADD CONSTRAINT balance_fk FOREIGN KEY (account_number) REFERENCES account(number);
+            ADD CONSTRAINT balance_fk FOREIGN KEY (account_id) REFERENCES account(id);
     END IF;
 END $$;
