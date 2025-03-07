@@ -1,3 +1,8 @@
+CREATE TABLE IF NOT EXISTS account_number_sequence (
+    type VARCHAR(32) NOT NULL PRIMARY KEY,
+    counter BIGINT DEFAULT 1 NOT NULL
+);
+
 INSERT INTO account_number_sequence (type, counter)
 VALUES
     ('DEBIT', 4200000000000000),
@@ -13,6 +18,6 @@ BEGIN
             ALTER COLUMN account_number TYPE BIGINT USING account_number::BIGINT;
 
         ALTER TABLE balance
-            ADD CONSTRAINT balance_fk FOREIGN KEY(account_number) REFERENCES account(number);
+            ADD CONSTRAINT balance_fk FOREIGN KEY (account_number) REFERENCES account(number);
     END IF;
 END $$;
