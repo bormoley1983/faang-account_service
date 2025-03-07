@@ -49,6 +49,12 @@ class AccountControllerIT extends TestContainersConfig {
     @BeforeEach
     void setUp() {
         accountRepository.deleteAll();
+        freeAccountRepository.deleteAll();
+
+        freeAccountNumberService.generateAccountNumbers(AccountType.CHECKING, 10);
+        freeAccountNumberService.generateAccountNumbers(AccountType.SAVINGS, 10);
+        freeAccountNumberService.generateAccountNumbers(AccountType.DEBIT, 10);
+        freeAccountNumberService.generateAccountNumbers(AccountType.CURRENCY, 10);
 
         Account account = Account.builder()
                 .number("123456789012")

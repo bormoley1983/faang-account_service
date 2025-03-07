@@ -1,4 +1,7 @@
 spring:
+  task:
+    scheduling:
+      enabled: true
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
