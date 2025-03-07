@@ -40,6 +40,8 @@ public class AccountNumberSchedulerIT {
         for (AccountType type : AccountType.values()) {
             accountSeqRepository.save(new AccountSeq(type, type.getBaseNumber()));
         }
+
+        accountNumberScheduler.generateAccounts();
     }
 
     @Test
