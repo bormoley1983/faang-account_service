@@ -48,9 +48,8 @@ class AccountControllerIT extends TestContainersConfig {
 
     @BeforeEach
     void setUp() {
-        accountRepository.deleteAll(); // Очищаем БД перед каждым тестом
+        accountRepository.deleteAll();
 
-        // Создаём тестовый аккаунт
         Account account = Account.builder()
                 .number("123456789012")
                 .ownerId(1L)
@@ -62,17 +61,16 @@ class AccountControllerIT extends TestContainersConfig {
         account = accountRepository.saveAndFlush(account);
         accountId = account.getId();
 
-        ensureTestAccountNumbers(); // Проверяем, есть ли свободные номера
+        ensureTestAccountNumbers();
 
-        System.out.println("Создан аккаунт ID: " + accountId);
+        System.out.println("Account ID created: " + accountId);
         assertThat(accountId).isNotNull();
     }
 
-    // Метод для проверки и генерации свободных номеров перед тестами
     void ensureTestAccountNumbers() {
         int freeCount = freeAccountRepository.countByType(AccountType.CHECKING);
-        if (freeCount < 10) { // Генерируем номера, если их недостаточно
-            System.out.println("Генерация дополнительных номеров счетов...");
+        if (freeCount < 10) {
+            System.out.println("Generating additional account numbers...");
             freeAccountNumberService.generateAccountNumbers(AccountType.CHECKING, 10);
         }
     }
