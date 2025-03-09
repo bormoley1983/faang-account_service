@@ -1,6 +1,5 @@
 package faang.school.accountservice.model;
 
-import faang.school.accountservice.service.BalanceListener;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,7 +26,6 @@ import java.time.LocalDateTime;
 @Builder
 @Data
 @Table(name = "balance")
-@EntityListeners(BalanceListener.class)
 @Entity
 public class Balance {
 
@@ -60,20 +58,6 @@ public class Balance {
         this.version = 1;
         this.authorizedBalance = BigDecimal.ZERO;
         this.actualBalance = BigDecimal.ZERO;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        this.version = 1;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        this.version = 1;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

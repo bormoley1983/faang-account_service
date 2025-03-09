@@ -1,5 +1,6 @@
 package faang.school.accountservice.service;
 
+import faang.school.accountservice.annotations.Auditable;
 import faang.school.accountservice.model.Account;
 import faang.school.accountservice.model.Balance;
 import faang.school.accountservice.repository.BalanceRepository;
@@ -20,6 +21,7 @@ public class BalanceService {
         return balanceRepository.findByAccountId(accountId);
     }
 
+    @Auditable
     @Transactional
     public Balance createBalance(long accountId) {
         if (balanceRepository.existsByAccountId(accountId)) {
@@ -31,9 +33,10 @@ public class BalanceService {
                 .account(account)
                 .build();
 
-        return balanceRepository.save(balance);
+        return balanceRepository.saveAndFlush(balance);
     }
 
+    @Auditable
     @Transactional
     public Balance authorizeAmount(long accountId, BigDecimal amount) {
         Balance balance = balanceRepository.findByAccountId(accountId);
@@ -46,9 +49,10 @@ public class BalanceService {
         BigDecimal newAuthorizedBalance = balance.getAuthorizedBalance().add(amount);
         balance.setAuthorizedBalance(newAuthorizedBalance);
 
-        return balanceRepository.save(balance);
+        return balanceRepository.saveAndFlush(balance);
     }
 
+    @Auditable
     @Transactional
     public Balance commitAuthorization(long accountId, BigDecimal amount) {
         Balance balance = balanceRepository.findByAccountId(accountId);
@@ -58,9 +62,10 @@ public class BalanceService {
         balance.setAuthorizedBalance(newAuthorizedBalance);
         balance.setActualBalance(newActualBalance);
 
-        return balanceRepository.save(balance);
+        return balanceRepository.saveAndFlush(balance);
     }
 
+    @Auditable
     @Transactional
     public Balance cancelAuthorization(long accountId, BigDecimal amount) {
         Balance balance = balanceRepository.findByAccountId(accountId);
@@ -68,9 +73,10 @@ public class BalanceService {
         BigDecimal newAuthorizedBalance = balance.getAuthorizedBalance().subtract(amount);
         balance.setAuthorizedBalance(newAuthorizedBalance);
 
-        return balanceRepository.save(balance);
+        return balanceRepository.saveAndFlush(balance);
     }
 
+    @Auditable
     @Transactional
     public Balance creditBalance(long accountId, BigDecimal amount) {
         Balance balance = balanceRepository.findByAccountId(accountId);
@@ -78,9 +84,10 @@ public class BalanceService {
         BigDecimal newActualBalance = balance.getActualBalance().add(amount);
         balance.setActualBalance(newActualBalance);
 
-        return balanceRepository.save(balance);
+        return balanceRepository.saveAndFlush(balance);
     }
 
+    @Auditable
     @Transactional
     public Balance debitBalance(long accountId, BigDecimal amount) {
         Balance balance = balanceRepository.findByAccountId(accountId);
@@ -93,6 +100,6 @@ public class BalanceService {
         BigDecimal newActualBalance = balance.getActualBalance().subtract(amount);
         balance.setActualBalance(newActualBalance);
 
-        return balanceRepository.save(balance);
+        return balanceRepository.saveAndFlush(balance);
     }
 }

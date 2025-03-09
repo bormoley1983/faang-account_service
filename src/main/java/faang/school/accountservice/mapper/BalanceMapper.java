@@ -17,5 +17,6 @@ public interface BalanceMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "balanceId", source = "id")
+    @Mapping(target = "createdAt", ignore = true)
     BalanceAudit toBalanceAudit(Balance balance);
 }

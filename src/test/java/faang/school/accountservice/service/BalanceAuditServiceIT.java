@@ -1,4 +1,4 @@
-package faang.school.accountservice.controller;
+package faang.school.accountservice.service;
 
 import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
@@ -6,6 +6,7 @@ import faang.school.accountservice.enums.Currency;
 import faang.school.accountservice.model.Account;
 import faang.school.accountservice.model.Balance;
 import faang.school.accountservice.model.BalanceAudit;
+import faang.school.accountservice.repository.AccountRepository;
 import faang.school.accountservice.repository.BalanceAuditRepository;
 import faang.school.accountservice.repository.BalanceRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,13 +28,17 @@ import static org.junit.Assert.assertEquals;
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
-public class BalanceAuditingIT {
+public class BalanceAuditServiceIT {
+
+    @Autowired
+    private BalanceService balanceService;
 
     @Autowired
     private BalanceAuditRepository balanceAuditRepository;
 
     @Autowired
-    private BalanceRepository balanceRepository;
+    private AccountRepository accountRepository;
+
 
     private Balance balance;
 
@@ -48,6 +53,7 @@ public class BalanceAuditingIT {
         account.setType(AccountType.SAVINGS);
         account.setCurrency(Currency.USD);
 
+        accountRepository.save(account);
 
         balance = balance.builder()
                 .id(1L)
@@ -76,9 +82,8 @@ public class BalanceAuditingIT {
         List<BigDecimal> expectedBalances = List.of(BigDecimal.ZERO.setScale(2),
                 BigDecimal.valueOf(actualBalance).setScale(2));
 
-        Balance bal = balanceRepository.save(balance);
-        bal.setActualBalance(BigDecimal.valueOf(actualBalance));
-        balanceRepository.save(bal);
+        Balance bal = balanceService.createBalance(1L);
+        balanceService.creditBalance(1L, BigDecimal.valueOf(actualBalance));
 
         List<BalanceAudit> audits = balanceAuditRepository.findAll();
         List<Integer> actualVersions = audits
