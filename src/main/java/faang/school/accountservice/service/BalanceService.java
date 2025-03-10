@@ -5,11 +5,13 @@ import faang.school.accountservice.model.Account;
 import faang.school.accountservice.model.Balance;
 import faang.school.accountservice.repository.BalanceRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class BalanceService {
@@ -33,7 +35,7 @@ public class BalanceService {
                 .account(account)
                 .build();
 
-        return balanceRepository.saveAndFlush(balance);
+        return balanceRepository.save(balance);
     }
 
     @Auditable
@@ -49,7 +51,7 @@ public class BalanceService {
         BigDecimal newAuthorizedBalance = balance.getAuthorizedBalance().add(amount);
         balance.setAuthorizedBalance(newAuthorizedBalance);
 
-        return balanceRepository.saveAndFlush(balance);
+        return balanceRepository.save(balance);
     }
 
     @Auditable
@@ -62,7 +64,7 @@ public class BalanceService {
         balance.setAuthorizedBalance(newAuthorizedBalance);
         balance.setActualBalance(newActualBalance);
 
-        return balanceRepository.saveAndFlush(balance);
+        return balanceRepository.save(balance);
     }
 
     @Auditable
@@ -73,7 +75,7 @@ public class BalanceService {
         BigDecimal newAuthorizedBalance = balance.getAuthorizedBalance().subtract(amount);
         balance.setAuthorizedBalance(newAuthorizedBalance);
 
-        return balanceRepository.saveAndFlush(balance);
+        return balanceRepository.save(balance);
     }
 
     @Auditable
@@ -84,7 +86,7 @@ public class BalanceService {
         BigDecimal newActualBalance = balance.getActualBalance().add(amount);
         balance.setActualBalance(newActualBalance);
 
-        return balanceRepository.saveAndFlush(balance);
+        return balanceRepository.save(balance);
     }
 
     @Auditable
@@ -100,6 +102,6 @@ public class BalanceService {
         BigDecimal newActualBalance = balance.getActualBalance().subtract(amount);
         balance.setActualBalance(newActualBalance);
 
-        return balanceRepository.saveAndFlush(balance);
+        return balanceRepository.save(balance);
     }
 }

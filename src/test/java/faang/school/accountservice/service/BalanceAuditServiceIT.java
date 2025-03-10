@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -38,7 +39,6 @@ public class BalanceAuditServiceIT {
 
     @Autowired
     private AccountRepository accountRepository;
-
 
     private Balance balance;
 
@@ -78,12 +78,16 @@ public class BalanceAuditServiceIT {
     @Test
     public void balanceAuditingIT() {
         int actualBalance = 100;
-        List<Integer> expectedVersions = List.of(1, 2);
+        int withdrawAmount = 200;
+        List<Integer> expectedVersions = List.of(1, 2, 2);
         List<BigDecimal> expectedBalances = List.of(BigDecimal.ZERO.setScale(2),
+                BigDecimal.valueOf(actualBalance).setScale(2),
                 BigDecimal.valueOf(actualBalance).setScale(2));
 
         Balance bal = balanceService.createBalance(1L);
         balanceService.creditBalance(1L, BigDecimal.valueOf(actualBalance));
+
+        assertThrows(IllegalStateException.class, () -> balanceService.authorizeAmount(1L, BigDecimal.valueOf(withdrawAmount)));
 
         List<BalanceAudit> audits = balanceAuditRepository.findAll();
         List<Integer> actualVersions = audits
@@ -95,7 +99,7 @@ public class BalanceAuditServiceIT {
                 .map((audit) -> audit.getActualBalance().setScale(2))
                 .toList();
 
-        assertEquals(2, audits.size());
+        assertEquals(3, audits.size());
         assertEquals(expectedVersions, actualVersions);
         assertEquals(expectedBalances, actualBalances);
     }

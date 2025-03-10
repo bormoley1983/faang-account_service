@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -78,6 +79,8 @@ public class BalanceControllerIT {
                 .status(AccountStatus.ACTIVE)
                 .build();
 
+
+
         testBalance = Balance.builder()
                 .id(1L)
                 .account(testAccount)
@@ -103,6 +106,7 @@ public class BalanceControllerIT {
 
     @Test
     public void testCreditBalance() throws Exception {
+
         mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/credits", 1)
                         .param("amount", "50.00"))
                 .andExpect(MockMvcResultMatchers.status().isOk())

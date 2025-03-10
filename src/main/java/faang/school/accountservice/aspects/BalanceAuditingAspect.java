@@ -2,6 +2,8 @@ package faang.school.accountservice.aspects;
 
 import faang.school.accountservice.model.Balance;
 import faang.school.accountservice.service.BalanceAuditService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -22,6 +24,9 @@ public class BalanceAuditingAspect {
 
     private final BalanceAuditService balanceAuditService;
 
+    @PersistenceContext
+    private final EntityManager entityManager;
+
     @Pointcut("@annotation(faang.school.accountservice.annotations.Auditable)")
     public void getAuditableMethods() {
     }
@@ -40,6 +45,8 @@ public class BalanceAuditingAspect {
     @AfterReturning(value = "getAuditableMethods()", returning = "result")
     public void afterSuccessfulOperation(Balance result) {
         if (result != null) {
+            entityManager.flush();
+            entityManager.refresh(result);
             balanceAuditService.createSuccessfulAudit(result);
         }
     }
