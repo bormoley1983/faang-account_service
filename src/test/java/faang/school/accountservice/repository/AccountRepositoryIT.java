@@ -39,7 +39,6 @@ public class AccountRepositoryIT extends TestContainersConfig {
     private final Long ownerId = 1L;
 
     @BeforeEach
-    @Transactional
     void setUp() {
         Account account = Account.builder()
                 .number("123456789012")
@@ -80,7 +79,6 @@ public class AccountRepositoryIT extends TestContainersConfig {
     }
 
     @Test
-    @Transactional
     void testIncrementCounter_Success() {
         Optional<AccountSeq> result = accountSeqRepository.incrementCounter(AccountType.SAVINGS.name(), 5);
 

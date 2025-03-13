@@ -28,8 +28,8 @@ account:
   number:
     min-free: 10
     batch-size: 5
-  base-numbers:
-    CHECKING: 6000000000000000
-    SAVINGS: 5536000000000000
-    CURRENCY: 7000000000000000
-    DEBIT: 4200000000000000
+  prefixes:
+    CHECKING: 6000
+    SAVINGS: 5536
+    CURRENCY: 7000
+    DEBIT: 4200

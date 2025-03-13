@@ -38,7 +38,6 @@ public class AccountNumberSchedulerIT extends TestContainersConfig {
     private AccountProperties accountProperties;
 
     @BeforeEach
-    @Transactional
     void setUp() {
         freeAccountRepository.deleteAll();
         accountSeqRepository.deleteAll();
@@ -52,7 +51,6 @@ public class AccountNumberSchedulerIT extends TestContainersConfig {
     }
 
     @Test
-    @Transactional
     void testSchedulerCreatesRequiredAccounts() {
         for (AccountType type : AccountType.values()) {
             freeAccountNumberService.ensureSufficientAccountNumbers(type);
