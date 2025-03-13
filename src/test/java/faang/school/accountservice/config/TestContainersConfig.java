@@ -18,7 +18,6 @@ public class TestContainersConfig {
 
     static {
         POSTGRESQL_CONTAINER.start();
-        waitForDatabaseToBeReady();
     }
 
     @DynamicPropertySource
@@ -26,13 +25,5 @@ public class TestContainersConfig {
         registry.add("spring.datasource.url", POSTGRESQL_CONTAINER::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRESQL_CONTAINER::getUsername);
         registry.add("spring.datasource.password", POSTGRESQL_CONTAINER::getPassword);
-    }
-
-    private static void waitForDatabaseToBeReady() {
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
     }
 }

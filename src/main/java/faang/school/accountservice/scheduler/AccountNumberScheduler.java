@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+
 @RequiredArgsConstructor
 @Component
 public class AccountNumberScheduler {
@@ -18,8 +20,7 @@ public class AccountNumberScheduler {
 
     @Scheduled(cron = "0 0 0 * * *")
     public void generateAccounts() {
-        for (AccountType type : AccountType.values()) {
-            freeAccountNumberService.generateAccountNumbers(type, batchSize);
-        }
+        Arrays.stream(AccountType.values())
+                .forEach(type -> freeAccountNumberService.generateAccountNumbers(type, batchSize));
     }
 }

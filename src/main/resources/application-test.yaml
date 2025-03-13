@@ -12,13 +12,12 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     drop-first: true
 
-logging:
-  level:
-    root: info
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
 account:
   number:
-    batch:
-      size: 10
+    min-free: 10
+    batch-size: 5
+  prefixes:
+    CHECKING: 6000
+    SAVINGS: 5536
+    CURRENCY: 7000
+    DEBIT: 4200

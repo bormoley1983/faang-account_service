@@ -7,6 +7,3 @@ databaseChangeLog:
 
   - include:
       file: db/changelog/changeset/V003__account-service_account.sql
-      
-  - include:
-      file: db/changelog/changeset/V004__account-service_account.sql    

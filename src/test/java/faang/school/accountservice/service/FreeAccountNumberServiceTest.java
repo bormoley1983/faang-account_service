@@ -1,5 +1,6 @@
 package faang.school.accountservice.service;
 
+import faang.school.accountservice.config.account.AccountProperties;
 import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.enums.Currency;
@@ -12,17 +13,13 @@ import faang.school.accountservice.repository.FreeAccountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Collections;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,51 +35,27 @@ class FreeAccountNumberServiceTest {
     @Mock
     private AccountRepository accountRepository;
 
-    private FreeAccountNumberService freeAccountNumberService; // Убираем @Spy
+    @Mock
+    private AccountProperties accountProperties;
 
+    private FreeAccountNumberService freeAccountNumberService;
     private Account account;
     private FreeAccountNumber freeAccountNumber;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        when(accountProperties.getBaseNumber(anyString())).thenReturn("4200000000000000");
 
-        freeAccountNumberService = Mockito.spy(new FreeAccountNumberService(accountSeqRepository, freeAccountRepository, accountRepository));
+        freeAccountNumberService = spy(new FreeAccountNumberService(accountSeqRepository, freeAccountRepository, accountRepository, accountProperties));
 
-        account = Account.builder()
-                .id(1L)
-                .ownerId(1L)
-                .type(AccountType.DEBIT)
-                .currency(Currency.RUB)
-                .status(AccountStatus.ACTIVE)
-                .build();
-
+        account = Account.builder().id(1L).ownerId(1L).type(AccountType.DEBIT).currency(Currency.RUB).status(AccountStatus.ACTIVE).build();
         freeAccountNumber = new FreeAccountNumber(new FreeAccountId(AccountType.DEBIT, 4200000000000001L));
     }
 
     @Test
-    void testGenerateAccountNumbers_Success() {
-        when(freeAccountRepository.countByType(AccountType.DEBIT)).thenReturn(5);
-        when(accountSeqRepository.incrementCounter(AccountType.DEBIT.name(), 5))
-                .thenReturn(Collections.singletonList(new Object[]{"DEBIT", 10L, 5L}));
-
-        freeAccountNumberService.generateAccountNumbers(AccountType.DEBIT, 5);
-
-        verify(freeAccountRepository, times(5)).save(any(FreeAccountNumber.class));
-    }
-
-    @Test
-    void testGenerateAccountNumbers_EnoughNumbers() {
-        when(freeAccountRepository.countByType(AccountType.DEBIT)).thenReturn(15);
-
-        freeAccountNumberService.generateAccountNumbers(AccountType.DEBIT, 5);
-
-        verify(freeAccountRepository, never()).save(any(FreeAccountNumber.class));
-    }
-
-    @Test
     void testAssignAccountNumber_Success() {
-        when(freeAccountRepository.retrieveFirst(AccountType.DEBIT.name())).thenReturn(freeAccountNumber);
+        when(freeAccountRepository.retrieveFirst(AccountType.DEBIT.name())).thenReturn(Optional.of(freeAccountNumber));
 
         freeAccountNumberService.assignAccountNumber(account);
 

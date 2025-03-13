@@ -1,6 +1,7 @@
 package faang.school.accountservice.scheduler;
 
 import faang.school.accountservice.config.TestContainersConfig;
+import faang.school.accountservice.config.account.AccountProperties;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.model.AccountSeq;
 import faang.school.accountservice.repository.AccountSeqRepository;
@@ -33,13 +34,18 @@ public class AccountNumberSchedulerIT extends TestContainersConfig {
     @Autowired
     private AccountSeqRepository accountSeqRepository;
 
+    @Autowired
+    private AccountProperties accountProperties;
+
     @BeforeEach
+    @Transactional
     void setUp() {
         freeAccountRepository.deleteAll();
         accountSeqRepository.deleteAll();
 
         for (AccountType type : AccountType.values()) {
-            accountSeqRepository.save(new AccountSeq(type, type.getBaseNumber()));
+            long baseNumber = Long.parseLong(accountProperties.getBaseNumber(type.name()));
+            accountSeqRepository.save(new AccountSeq(type, baseNumber));
         }
 
         accountNumberScheduler.generateAccounts();
@@ -51,8 +57,9 @@ public class AccountNumberSchedulerIT extends TestContainersConfig {
         for (AccountType type : AccountType.values()) {
             freeAccountNumberService.ensureSufficientAccountNumbers(type);
             long count = freeAccountRepository.countByType(type);
+
             assertThat(count)
-                    .as("Check generated account numbers for type: " + type)
+                    .as("Number of available for " + type)
                     .isGreaterThan(0);
         }
     }
