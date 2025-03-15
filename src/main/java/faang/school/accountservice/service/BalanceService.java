@@ -1,14 +1,17 @@
 package faang.school.accountservice.service;
 
+import faang.school.accountservice.annotations.Auditable;
 import faang.school.accountservice.model.Account;
 import faang.school.accountservice.model.Balance;
 import faang.school.accountservice.repository.BalanceRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class BalanceService {
@@ -20,6 +23,7 @@ public class BalanceService {
         return balanceRepository.findByAccountId(accountId);
     }
 
+    @Auditable
     @Transactional
     public Balance createBalance(long accountId) {
         if (balanceRepository.existsByAccountId(accountId)) {
@@ -34,6 +38,7 @@ public class BalanceService {
         return balanceRepository.save(balance);
     }
 
+    @Auditable
     @Transactional
     public Balance authorizeAmount(long accountId, BigDecimal amount) {
         Balance balance = balanceRepository.findByAccountId(accountId);
@@ -49,6 +54,7 @@ public class BalanceService {
         return balanceRepository.save(balance);
     }
 
+    @Auditable
     @Transactional
     public Balance commitAuthorization(long accountId, BigDecimal amount) {
         Balance balance = balanceRepository.findByAccountId(accountId);
@@ -61,6 +67,7 @@ public class BalanceService {
         return balanceRepository.save(balance);
     }
 
+    @Auditable
     @Transactional
     public Balance cancelAuthorization(long accountId, BigDecimal amount) {
         Balance balance = balanceRepository.findByAccountId(accountId);
@@ -71,6 +78,7 @@ public class BalanceService {
         return balanceRepository.save(balance);
     }
 
+    @Auditable
     @Transactional
     public Balance creditBalance(long accountId, BigDecimal amount) {
         Balance balance = balanceRepository.findByAccountId(accountId);
@@ -81,6 +89,7 @@ public class BalanceService {
         return balanceRepository.save(balance);
     }
 
+    @Auditable
     @Transactional
     public Balance debitBalance(long accountId, BigDecimal amount) {
         Balance balance = balanceRepository.findByAccountId(accountId);
