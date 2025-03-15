@@ -18,7 +18,9 @@ import org.mockito.MockitoAnnotations;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -61,5 +63,28 @@ class FreeAccountNumberServiceTest {
 
         assertEquals("4200000000000001", account.getNumber());
         verify(accountRepository, times(1)).save(account);
+    }
+
+    @Test
+    void testGenerateMissingAccountNumbers_MissingNumbersExist() {
+        AccountType testAccountType = AccountType.DEBIT;
+        int expectedMissingNumbers = 4;
+        when(freeAccountRepository.countByType(testAccountType)).thenReturn(1);
+
+        freeAccountNumberService.generateMissingAccountNumbers(testAccountType, 5);
+
+        verify(freeAccountRepository, times(1)).countByType(testAccountType);
+        verify(accountSeqRepository, times(1)).incrementCounter(testAccountType.name(), 4);
+    }
+
+    @Test
+    void testGenerateMissingAccountNumbers_NoMissingNumbers() {
+        AccountType testAccountType = AccountType.DEBIT;
+        when(freeAccountRepository.countByType(testAccountType)).thenReturn(10);
+
+        freeAccountNumberService.generateMissingAccountNumbers(testAccountType, 10);
+
+        verify(freeAccountRepository, times(1)).countByType(testAccountType);
+        verify(accountSeqRepository, never()).incrementCounter(anyString(), anyInt());
     }
 }

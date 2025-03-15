@@ -16,6 +16,7 @@ account:
   number:
     min-free: 10
     batch-size: 5
+    max-free: 25
   base-numbers:
     CHECKING: 6000000000000000
     SAVINGS: 5536000000000000
