@@ -60,6 +60,26 @@ public class FreeAccountNumberService {
         });
     }
 
+    @Transactional
+    public void assignAccountNumber(Account account) {
+        log.info("Assigning account number for {}", account.getType());
+
+        ensureSufficientAccountNumbers(account.getType());
+
+        freeAccountRepository.retrieveFirst(account.getType().name())
+                .ifPresentOrElse(
+                        freeAccountNumber -> {
+                            account.setNumber(String.valueOf(freeAccountNumber.getId().getAccountNumber()));
+                            accountRepository.save(account);
+                            log.info("Assigned account number: {} to account", freeAccountNumber.getId().getAccountNumber());
+                        },
+                        () -> {
+                            log.error("No available account numbers for {}", account.getType());
+                            throw new IllegalStateException("No free account numbers available");
+                        }
+                );
+    }
+
     private Optional<AccountSeq> fetchCounterUpdate(AccountType type, int batchSize) {
         log.info("Incrementing account sequence for {} with batch size {}", type, batchSize);
 
@@ -99,25 +119,5 @@ public class FreeAccountNumberService {
         } catch (Exception e) {
             log.error("Failed to save account number: {} | Error: {}", id.getAccountNumber(), e.getMessage());
         }
-    }
-
-    @Transactional
-    public void assignAccountNumber(Account account) {
-        log.info("Assigning account number for {}", account.getType());
-
-        ensureSufficientAccountNumbers(account.getType());
-
-        freeAccountRepository.retrieveFirst(account.getType().name())
-                .ifPresentOrElse(
-                        freeAccountNumber -> {
-                            account.setNumber(String.valueOf(freeAccountNumber.getId().getAccountNumber()));
-                            accountRepository.save(account);
-                            log.info("Assigned account number: {} to account", freeAccountNumber.getId().getAccountNumber());
-                        },
-                        () -> {
-                            log.error("No available account numbers for {}", account.getType());
-                            throw new IllegalStateException("No free account numbers available");
-                        }
-                );
     }
 }
