@@ -24,6 +24,9 @@ class AccountServiceTest {
     @Mock
     private AccountRepository accountRepository;
 
+    @Mock
+    private FreeAccountNumberService freeAccountNumberService;
+
     @InjectMocks
     private AccountService accountService;
 
@@ -58,7 +61,7 @@ class AccountServiceTest {
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> accountService.getAccount(accountId));
 
-        assertEquals("Account not found", exception.getMessage());
+        assertEquals("Account not found with id: " + accountId, exception.getMessage());
         verify(accountRepository, times(1)).findById(accountId);
     }
 
@@ -70,7 +73,8 @@ class AccountServiceTest {
 
         assertNotNull(result);
         assertEquals(AccountStatus.ACTIVE, result.getStatus());
-        verify(accountRepository, times(1)).save(any(Account.class));
+        verify(freeAccountNumberService, times(1)).assignAccountNumber(account);
+        verify(accountRepository, times(1)).save(account);
     }
 
     @Test

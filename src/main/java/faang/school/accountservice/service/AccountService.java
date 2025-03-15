@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -15,6 +16,7 @@ import java.util.Optional;
 public class AccountService {
 
     private final AccountRepository accountRepository;
+    private final FreeAccountNumberService freeAccountNumberService;
 
     public Account getAccount(Long id) {
         return getAccountById(id);
@@ -23,6 +25,7 @@ public class AccountService {
     @Transactional
     public Account createAccount(Account account) {
         account.setStatus(AccountStatus.ACTIVE);
+        freeAccountNumberService.assignAccountNumber(account);
         return accountRepository.save(account);
     }
 
@@ -38,7 +41,7 @@ public class AccountService {
 
     private Account getAccountById(Long id) {
         return accountRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new NoSuchElementException("Account not found with id: " + id));
     }
 
     private Account updateAccountStatus(Long id, AccountStatus status, LocalDateTime closedAt) {

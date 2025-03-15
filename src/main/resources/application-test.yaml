@@ -1,4 +1,7 @@
 spring:
+  task:
+    scheduling:
+      enabled: true
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -9,6 +12,12 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     drop-first: true
 
-logging:
-  level:
-    root: info
+account:
+  number:
+    min-free: 10
+    batch-size: 5
+  base-numbers:
+    CHECKING: 6000000000000000
+    SAVINGS: 5536000000000000
+    CURRENCY: 7000000000000000
+    DEBIT: 4200000000000000
