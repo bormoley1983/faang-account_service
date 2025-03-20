@@ -80,6 +80,17 @@ public class FreeAccountNumberService {
                 );
     }
 
+    @Transactional
+    public void generateMissingAccountNumbers(AccountType type, int targetAmount) {
+        int availableNumbers = freeAccountRepository.countByType(type);
+        int missingNumbers = targetAmount - availableNumbers;
+
+        if (missingNumbers > 0) {
+            log.info("Generating {} account numbers for {}", missingNumbers, type);
+            generateAccountNumbers(type, missingNumbers);
+        }
+    }
+
     private Optional<AccountSeq> fetchCounterUpdate(AccountType type, int batchSize) {
         log.info("Incrementing account sequence for {} with batch size {}", type, batchSize);
 

@@ -15,7 +15,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -60,5 +63,18 @@ public class AccountNumberSchedulerIT extends TestContainersConfig {
                     .as("Number of available for " + type)
                     .isGreaterThan(0);
         }
+    }
+
+    @Test
+    void testSchedulerCreatesMissingAccounts() {
+        accountNumberScheduler.generateMissingAccounts();
+        int expectedCount = 25;
+
+        Arrays.stream(AccountType.values())
+                .forEach(type -> {
+                    int actualCount = freeAccountRepository.countByType(type);
+
+                    assertEquals(expectedCount, actualCount);
+                });
     }
 }
