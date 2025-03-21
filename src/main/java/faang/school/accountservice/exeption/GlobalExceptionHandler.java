@@ -25,6 +25,9 @@ public class GlobalExceptionHandler {
         ERROR_STATUS_MAP.put(NoSuchElementException.class, ErrorMessages.NOT_FOUND);
         ERROR_STATUS_MAP.put(IllegalStateException.class, ErrorMessages.CONFLICT);
         ERROR_STATUS_MAP.put(Exception.class, ErrorMessages.INTERNAL_SERVER_ERROR);
+        ERROR_STATUS_MAP.put(AccountNotFoundException.class, ErrorMessages.NOT_FOUND);
+        ERROR_STATUS_MAP.put(SavingsAccountNotFoundException.class, ErrorMessages.NOT_FOUND);
+
     }
 
     @ExceptionHandler(NoSuchElementException.class)

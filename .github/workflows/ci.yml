@@ -19,5 +19,14 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Ensure Docker is running
+        run: |
+          sudo systemctl start docker
+          sleep 5
+          docker info
+
+      - name: Clean build
+        run: ./gradlew clean
+
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test --no-daemon

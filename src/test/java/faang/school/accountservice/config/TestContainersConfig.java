@@ -11,14 +11,10 @@ public class TestContainersConfig {
 
     @Container
     protected static final PostgreSQLContainer<?> POSTGRESQL_CONTAINER =
-            new PostgreSQLContainer<>("postgres:13.3")
+            new PostgreSQLContainer<>("postgres:13-alpine")
                     .withDatabaseName("test-db")
                     .withUsername("test")
                     .withPassword("test");
-
-    static {
-        POSTGRESQL_CONTAINER.start();
-    }
 
     @DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {

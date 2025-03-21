@@ -4,6 +4,8 @@ spring:
     url: jdbc:postgresql://localhost:5432/postgres
     username: user
     password: password
+    hikari:
+      auto-commit: false
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -19,6 +21,10 @@ spring:
 
 server:
   port: 8090
+
+scheduler:
+  interest:
+    cron: "0 0 1 * * ?"
 
 logging:
   level:
