@@ -6,8 +6,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.Duration;
-
 @Testcontainers
 public class TestContainersConfig {
 
@@ -16,8 +14,7 @@ public class TestContainersConfig {
             new PostgreSQLContainer<>("postgres:13-alpine")
                     .withDatabaseName("test-db")
                     .withUsername("test")
-                    .withPassword("test")
-                    .withStartupTimeout(Duration.ofSeconds(60));
+                    .withPassword("test");
 
     @DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {

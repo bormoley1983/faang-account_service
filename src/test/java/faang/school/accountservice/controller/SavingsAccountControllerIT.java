@@ -1,7 +1,6 @@
 package faang.school.accountservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import faang.school.accountservice.config.TestContainersConfig;
 import faang.school.accountservice.dto.savingsAccount.AmountDto;
 import faang.school.accountservice.dto.savingsAccount.SavingsAccountRegisterDto;
 import faang.school.accountservice.enums.AccountStatus;
@@ -19,9 +18,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,10 +35,25 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Testcontainers
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @SpringBootTest
-public class SavingsAccountControllerIT extends TestContainersConfig {
+public class SavingsAccountControllerIT {
+
+    @Container
+    private static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:13-alpine")
+            .withDatabaseName("test-db")
+            .withUsername("test")
+            .withPassword("test")
+            .withStartupTimeout(Duration.ofSeconds(60));
+
+    @DynamicPropertySource
+    static void overrideProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", postgresContainer::getUsername);
+        registry.add("spring.datasource.password", postgresContainer::getPassword);
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -51,18 +71,14 @@ public class SavingsAccountControllerIT extends TestContainersConfig {
     private ObjectMapper objectMapper;
 
     private Long testAccountId;
-
     private Long testTariffId;
 
     @BeforeEach
-    void clean() {
+    void setUp() {
         savingsAccountRepository.deleteAll();
         accountRepository.deleteAll();
         tariffRepository.deleteAll();
-    }
 
-    @BeforeEach
-    void setUp() {
         String uniqueNumber = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
         Account account = new Account();
         account.setNumber(uniqueNumber);
@@ -70,14 +86,12 @@ public class SavingsAccountControllerIT extends TestContainersConfig {
         account.setStatus(AccountStatus.ACTIVE);
         account.setType(AccountType.SAVINGS);
         account.setCurrency(Currency.USD);
-
         testAccountId = accountRepository.save(account).getId();
 
         Tariff tariff = Tariff.builder()
                 .name("Standard Tariff")
                 .rateHistory(List.of(new BigDecimal("5.0")))
                 .build();
-
         testTariffId = tariffRepository.save(tariff).getId();
     }
 
@@ -157,9 +171,9 @@ public class SavingsAccountControllerIT extends TestContainersConfig {
         deposit.setAmount(new BigDecimal("10"));
 
         mockMvc.perform(post("/savingsAccount/" + testAccountId + "/deposit")
-                    .header("x-user-id", "12345")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(deposit)))
+                        .header("x-user-id", "12345")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(deposit)))
                 .andExpect(status().isOk());
     }
 
