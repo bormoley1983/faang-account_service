@@ -68,7 +68,6 @@ class FreeAccountNumberServiceTest {
     @Test
     void testGenerateMissingAccountNumbers_MissingNumbersExist() {
         AccountType testAccountType = AccountType.DEBIT;
-        int expectedMissingNumbers = 4;
         when(freeAccountRepository.countByType(testAccountType)).thenReturn(1);
 
         freeAccountNumberService.generateMissingAccountNumbers(testAccountType, 5);

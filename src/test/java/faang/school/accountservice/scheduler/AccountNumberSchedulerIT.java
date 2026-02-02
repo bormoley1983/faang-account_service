@@ -1,6 +1,6 @@
 package faang.school.accountservice.scheduler;
 
-import faang.school.accountservice.config.TestContainersConfig;
+import faang.school.accountservice.config.BaseIntegrationTest;
 import faang.school.accountservice.config.account.AccountProperties;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.model.AccountSeq;
@@ -10,20 +10,15 @@ import faang.school.accountservice.service.FreeAccountNumberService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@ActiveProfiles("test")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SpringBootTest
-public class AccountNumberSchedulerIT extends TestContainersConfig {
+public class AccountNumberSchedulerIT extends BaseIntegrationTest {
 
     @Autowired
     private AccountNumberScheduler accountNumberScheduler;

@@ -9,12 +9,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.InputStream;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,6 +43,17 @@ class AccountServiceTest {
         account.setNumber("123456789012");
         account.setOwnerId(1L);
         account.setStatus(AccountStatus.ACTIVE);
+    }
+
+    @Test
+    void verifyTestcontainersPropertiesLoaded() {
+        String reuseEnabled = System.getProperty("testcontainers.reuse.enable");
+        System.out.println("Testcontainers reuse.enable: " + reuseEnabled);
+        
+        // Check if properties are loaded
+        ClassLoader classLoader = getClass().getClassLoader();
+        InputStream is = classLoader.getResourceAsStream("testcontainers.properties");
+        System.out.println("testcontainers.properties found: " + (is != null));
     }
 
     @Test

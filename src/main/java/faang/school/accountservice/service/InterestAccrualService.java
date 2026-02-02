@@ -28,7 +28,7 @@ public class InterestAccrualService {
     private final TariffRepository tariffRepository;
 
     @Async("interestAccrualExecutor")
-    @Retryable(value = Exception.class)
+    @Retryable()
     public void accrueInterestForAccount(SavingsAccount account, LocalDate today) {
 
         LocalDate lastDate = account.getLastInterestDate();

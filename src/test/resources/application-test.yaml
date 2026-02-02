@@ -1,0 +1,50 @@
+spring:
+  datasource:
+    hikari:
+      maxLifetime: 30000
+
+  task:
+    scheduling:
+      enabled: true
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: create-drop #update, validate 
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+      datasource:
+        url: jdbc:tc:postgresql:16-alpine:///testdb
+        driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+      data:
+        redis:
+          host: localhost
+          port: 6379
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    drop-first: true
+    contexts: test
+
+account:
+  number:
+    min-free: 10
+    batch-size: 5
+    max-free: 25
+  base-numbers:
+    CHECKING: 6000000000000000
+    SAVINGS: 5536000000000000
+    CURRENCY: 7000000000000000
+    DEBIT: 4200000000000000
+
+logging:
+  level:
+    "[org.testcontainers]": DEBUG
+    "[com.github.dockerjava]": DEBUG
+    "[liquibase]": DEBUG
+    "[org.hibernate.SQL]": DEBUG
+    "[org.hibernate.orm.jdbc.bind]": TRACE
+    "[org.springframework.boot.test.context]": DEBUG

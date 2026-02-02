@@ -1,11 +1,11 @@
 package faang.school.accountservice.model;
 
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import faang.school.accountservice.converter.TariffHistoryConverter;
 import faang.school.accountservice.dto.savingsAccount.TariffHistorySnapshot;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
@@ -17,7 +17,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
@@ -47,7 +46,7 @@ public class SavingsAccount {
     @Builder.Default
     private BigDecimal balance = BigDecimal.ZERO;
 
-    @Type(JsonBinaryType.class)
+    @Convert(converter = TariffHistoryConverter.class)
     @Column(name = "tariff_history", columnDefinition = "jsonb", nullable = false)
     @Builder.Default
     private List<TariffHistorySnapshot> tariffHistory = new ArrayList<>();

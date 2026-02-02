@@ -1,6 +1,8 @@
 package faang.school.accountservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import faang.school.accountservice.config.BaseIntegrationTest;
 import faang.school.accountservice.dto.savingsAccount.AmountDto;
 import faang.school.accountservice.dto.savingsAccount.SavingsAccountRegisterDto;
 import faang.school.accountservice.enums.AccountStatus;
@@ -14,19 +16,12 @@ import faang.school.accountservice.repository.TariffRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,28 +30,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Testcontainers
-@ActiveProfiles("test")
-@AutoConfigureMockMvc
 @SpringBootTest
-public class SavingsAccountControllerIT {
-
-    @Container
-    private static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:13-alpine")
-            .withDatabaseName("test-db")
-            .withUsername("test")
-            .withPassword("test")
-            .withStartupTimeout(Duration.ofSeconds(60));
-
-    @DynamicPropertySource
-    static void overrideProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresContainer::getUsername);
-        registry.add("spring.datasource.password", postgresContainer::getPassword);
-    }
+@AutoConfigureMockMvc
+public class SavingsAccountControllerIT extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private SavingsAccountRepository savingsAccountRepository;
@@ -66,9 +48,6 @@ public class SavingsAccountControllerIT {
 
     @Autowired
     private AccountRepository accountRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private Long testAccountId;
     private Long testTariffId;

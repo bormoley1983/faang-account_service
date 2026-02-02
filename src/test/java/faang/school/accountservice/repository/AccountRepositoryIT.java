@@ -1,6 +1,6 @@
 package faang.school.accountservice.repository;
 
-import faang.school.accountservice.config.TestContainersConfig;
+import faang.school.accountservice.config.BaseIntegrationTest;
 import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.enums.Currency;
@@ -8,23 +8,19 @@ import faang.school.accountservice.model.Account;
 import faang.school.accountservice.model.AccountSeq;
 import faang.school.accountservice.model.FreeAccountId;
 import faang.school.accountservice.model.FreeAccountNumber;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ActiveProfiles("test")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DataJpaTest
-public class AccountRepositoryIT extends TestContainersConfig {
+public class AccountRepositoryIT extends BaseIntegrationTest {
 
     @Autowired
     private AccountRepository accountRepository;

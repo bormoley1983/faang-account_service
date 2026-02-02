@@ -1,11 +1,11 @@
 package faang.school.accountservice.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import faang.school.accountservice.config.BaseIntegrationTest;
 import faang.school.accountservice.config.context.UserContext;
 import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.enums.Currency;
-import faang.school.accountservice.mapper.BalanceMapperImpl;
+import faang.school.accountservice.mapper.BalanceMapper;
 import faang.school.accountservice.model.Account;
 import faang.school.accountservice.model.Balance;
 import faang.school.accountservice.repository.BalanceRepository;
@@ -15,56 +15,32 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Import({BalanceService.class, BalanceMapperImpl.class})
-@Testcontainers
-@WebMvcTest(BalanceController.class)
-public class BalanceControllerIT {
-
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
-            .withUsername("user")
-            .withPassword("password");
+@Import({BalanceService.class, BalanceMapper.class})
+public class BalanceControllerIT extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
+    @MockitoBean
     private BalanceRepository balanceRepository;
 
-    @MockBean
+    @MockitoBean
     private UserContext userContext;
 
-    @MockBean
+    @MockitoBean
     private AccountService accountService;
-
-    @DynamicPropertySource
-    static void overrideProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
 
     private Balance testBalance;
 
@@ -78,8 +54,6 @@ public class BalanceControllerIT {
                 .currency(Currency.USD)
                 .status(AccountStatus.ACTIVE)
                 .build();
-
-
 
         testBalance = Balance.builder()
                 .id(1L)

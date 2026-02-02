@@ -1,6 +1,6 @@
 package faang.school.accountservice.controller;
 
-import faang.school.accountservice.config.TestContainersConfig;
+import faang.school.accountservice.config.BaseIntegrationTest;
 import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.model.Account;
@@ -10,11 +10,10 @@ import faang.school.accountservice.service.FreeAccountNumberService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -27,10 +26,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ActiveProfiles("test")
 @AutoConfigureMockMvc
 @SpringBootTest
-class AccountControllerIT extends TestContainersConfig {
+class AccountControllerIT extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

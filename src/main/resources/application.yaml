@@ -1,23 +1,39 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: user
-    password: password
+    url: ${DATABASE_URL:jdbc:postgresql://host.docker.internal:5432/postgres}
+    username: ${DATABASE_USERNAME:user}
+    password: ${DATABASE_PASSWORD:password}
     hikari:
       auto-commit: false
+      schema: ${DATABASE_SCHEMA:account_service}
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
 
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
     hibernate:
       ddl-auto: none
-    show-sql: true
+    show-sql: ${SHOW_SQL:true}
     properties:
       hibernate:
         format_sql: true
+        default_schema: ${DATABASE_SCHEMA:account_service}
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+    default-schema: ${DATABASE_SCHEMA:account_service}
+    liquibase-schema: ${DATABASE_SCHEMA:account_service}
+
+springdoc:
+  swagger-ui:
+    enabled:  ${SWAGGERUI_ENABLED:true}
+  api-docs:
+    enabled: ${API_DOCS_ENABLED:true}
 
 server:
   port: 8090
@@ -29,6 +45,7 @@ scheduler:
 logging:
   level:
     root: info
+    liquibase: info
 
 account:
   number:
