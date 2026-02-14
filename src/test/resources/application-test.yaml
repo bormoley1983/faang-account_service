@@ -1,6 +1,7 @@
 spring:
   datasource:
     hikari:
+      schema: public
       maxLifetime: 30000
 
   task:
@@ -10,24 +11,21 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: create-drop #update, validate 
+      ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-      datasource:
-        url: jdbc:tc:postgresql:16-alpine:///testdb
-        driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-      data:
-        redis:
-          host: localhost
-          port: 6379
+        default_schema: public
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
   liquibase:
-    enabled: true
-    change-log: classpath:db/changelog/db.changelog-master.yaml
-    drop-first: true
-    contexts: test
+    default-schema: public
+    liquibase-schema: public
 
 account:
   number:

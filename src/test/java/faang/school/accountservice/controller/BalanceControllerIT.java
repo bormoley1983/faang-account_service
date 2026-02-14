@@ -5,17 +5,15 @@ import faang.school.accountservice.config.context.UserContext;
 import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.enums.Currency;
-import faang.school.accountservice.mapper.BalanceMapper;
 import faang.school.accountservice.model.Account;
 import faang.school.accountservice.model.Balance;
 import faang.school.accountservice.repository.BalanceRepository;
 import faang.school.accountservice.service.AccountService;
-import faang.school.accountservice.service.BalanceService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,7 +25,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Import({BalanceService.class, BalanceMapper.class})
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+
+@SpringBootTest
+@AutoConfigureMockMvc
 public class BalanceControllerIT extends BaseIntegrationTest {
 
     @Autowired
