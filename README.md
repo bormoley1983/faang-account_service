@@ -60,3 +60,5 @@ Project uses Testcontainers for integration tests. CI config: [.github/workflows
 - Add an OpenAPI / Swagger usage example and endpoint to README (project already includes springdoc in [build.gradle.kts](build.gradle.kts)).  
 - Document important domain flows (balance auditing, free-account-number generation) and link to implementation: [`faang.school.accountservice.aspects.BalanceAuditingAspect`](src/main/java/faang/school/accountservice/aspects/BalanceAuditingAspect.java) and [`faang.school.accountservice.service.FreeAccountNumberService`](src/main/java/faang/school/accountservice/service/FreeAccountNumberService.java).  
 - Improve CONTRIBUTING section and add example requests for key endpoints (create account, credit/debit, open savings) referencing controllers above.
+
+**Note:** Base code structure and architecture patterns are based on [FAANG School](https://github.com/faang-school) educational project.

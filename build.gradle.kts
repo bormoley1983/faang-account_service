@@ -53,8 +53,6 @@ dependencies {
      */ 
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
-    testCompileOnly("org.projectlombok:lombok")
-    testAnnotationProcessor("org.projectlombok:lombok")
 
     implementation("org.mapstruct:mapstruct:1.6.3")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
@@ -62,12 +60,13 @@ dependencies {
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
     implementation("org.codehaus.janino:janino:3.1.11")
-    // implementation("ch.qos.logback:logback-classic:1.4.14")
-    // implementation("ch.qos.logback:logback-core:1.4.14")
 
     /**
      * Test Containers
      */
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test") 
     testImplementation("org.springframework.boot:spring-boot-starter-data-redis") 
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test") 
@@ -77,26 +76,24 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:1.21.4")
     testImplementation("org.testcontainers:postgresql:1.21.4")
     testImplementation("com.redis:testcontainers-redis:2.2.4")
-
     
     testImplementation("org.assertj:assertj-core:3.27.7")
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    jvmArgs("--enable-native-access=ALL-UNNAMED")
-}
-
-tasks.bootJar {
-    archiveFileName.set("service.jar")
+    // jvmArgs("--enable-native-access=ALL-UNNAMED")
 }
 
 tasks.test {
-    useJUnitPlatform()
 
     testLogging {
         events("passed", "skipped", "failed", "standardOut", "standardError")
         showStandardStreams = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
+}
+
+tasks.bootJar {
+    archiveFileName.set("service.jar")
 }
