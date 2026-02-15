@@ -68,7 +68,9 @@ dependencies {
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test") 
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "com.vaadin.external.google", module = "android-json")
+    } 
     testImplementation("org.springframework.boot:spring-boot-starter-data-redis") 
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test") 
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
