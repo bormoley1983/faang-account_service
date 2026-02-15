@@ -14,5 +14,5 @@ public class RegisterTariffDto {
     @NotNull
     private String name;
     @NotNull
-    private BigDecimal rateHistory;
+    private BigDecimal rate;
 }

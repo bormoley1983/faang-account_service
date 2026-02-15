@@ -5,13 +5,16 @@ import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.model.Account;
 import faang.school.accountservice.repository.AccountRepository;
+import faang.school.accountservice.repository.BalanceRepository;
 import faang.school.accountservice.repository.FreeAccountRepository;
+import faang.school.accountservice.repository.SavingsAccountRepository;
 import faang.school.accountservice.service.FreeAccountNumberService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 
@@ -28,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @SpringBootTest
+@ActiveProfiles("test")
 class AccountControllerIT extends BaseIntegrationTest {
 
     @Autowired
@@ -42,10 +46,22 @@ class AccountControllerIT extends BaseIntegrationTest {
     @Autowired
     private FreeAccountNumberService freeAccountNumberService;
 
+    @Autowired
+    private SavingsAccountRepository savingsAccountRepository;
+
+    @Autowired
+    private BalanceRepository balanceRepository;
+
+    @Autowired
+    private faang.school.accountservice.repository.BalanceAuditRepository balanceAuditRepository;
+
     private Long accountId;
 
     @BeforeEach
     void setUp() {
+        balanceAuditRepository.deleteAll();
+        savingsAccountRepository.deleteAll();
+        balanceRepository.deleteAll();
         accountRepository.deleteAll();
         freeAccountRepository.deleteAll();
 

@@ -1,9 +1,7 @@
 package faang.school.accountservice.model;
 
-import faang.school.accountservice.converter.TariffHistoryConverter;
 import faang.school.accountservice.dto.savingsAccount.TariffHistorySnapshot;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -17,6 +15,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
@@ -46,7 +45,7 @@ public class SavingsAccount {
     @Builder.Default
     private BigDecimal balance = BigDecimal.ZERO;
 
-    @Convert(converter = TariffHistoryConverter.class)
+    @JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     @Column(name = "tariff_history", columnDefinition = "jsonb", nullable = false)
     @Builder.Default
     private List<TariffHistorySnapshot> tariffHistory = new ArrayList<>();

@@ -8,11 +8,16 @@ import faang.school.accountservice.model.Account;
 import faang.school.accountservice.model.BalanceAudit;
 import faang.school.accountservice.repository.AccountRepository;
 import faang.school.accountservice.repository.BalanceAuditRepository;
+import faang.school.accountservice.repository.BalanceRepository;
+import faang.school.accountservice.repository.SavingsAccountRepository;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -21,7 +26,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@AutoConfigureMockMvc
 @SpringBootTest
+@ActiveProfiles("test")
 public class BalanceAuditServiceIT extends BaseIntegrationTest {
 
     @Autowired
@@ -33,24 +40,39 @@ public class BalanceAuditServiceIT extends BaseIntegrationTest {
     @Autowired
     private AccountRepository accountRepository;
 
+    @Autowired
+    private BalanceRepository balanceRepository;
+
+    @Autowired
+    private SavingsAccountRepository savingsAccountRepository;
+
 
     private Account account;
 
     @BeforeEach
     public void setup() {
+        balanceAuditRepository.deleteAll();
+        savingsAccountRepository.deleteAll();
+        balanceRepository.deleteAll();
+        accountRepository.deleteAll();
+
         account = new Account();
-        account.setNumber("123456789012");
+        account.setNumber(String.valueOf(System.nanoTime()));
         account.setOwnerId(1L);
         account.setStatus(AccountStatus.ACTIVE);
         account.setType(AccountType.SAVINGS);
         account.setCurrency(Currency.USD);
 
         accountRepository.save(account);
+
+        balanceService.createBalance(account.getId());
     }
 
     @AfterEach
     public void tearDown() {
         balanceAuditRepository.deleteAll();
+        savingsAccountRepository.deleteAll();
+        balanceRepository.deleteAll();
         accountRepository.deleteAll();
     }
 
@@ -63,9 +85,9 @@ public class BalanceAuditServiceIT extends BaseIntegrationTest {
                 BigDecimal.valueOf(actualBalance).setScale(2),
                 BigDecimal.valueOf(actualBalance).setScale(2));
 
-        balanceService.creditBalance(1L, BigDecimal.valueOf(actualBalance));
+        balanceService.creditBalance(account.getId(), BigDecimal.valueOf(actualBalance));
 
-        assertThrows(IllegalStateException.class, () -> balanceService.authorizeAmount(1L, BigDecimal.valueOf(withdrawAmount)));
+        assertThrows(IllegalStateException.class, () -> balanceService.authorizeAmount(account.getId(), BigDecimal.valueOf(withdrawAmount)));
 
         List<BalanceAudit> audits = balanceAuditRepository.findAll();
         List<Integer> actualVersions = audits
@@ -87,7 +109,7 @@ public class BalanceAuditServiceIT extends BaseIntegrationTest {
         BigDecimal creditAmount = BigDecimal.valueOf(500);
         BigDecimal authorizeAmount = BigDecimal.valueOf(300);
 
-        balanceService.creditBalance(account.getId(), BigDecimal.ZERO);
+        balanceService.creditBalance(account.getId(), BigDecimal.valueOf(100));
         balanceService.creditBalance(account.getId(), creditAmount);
         balanceService.authorizeAmount(account.getId(), authorizeAmount);
 
@@ -98,13 +120,13 @@ public class BalanceAuditServiceIT extends BaseIntegrationTest {
         assertThat(audits.get(0).getActualBalance()).isEqualByComparingTo(BigDecimal.ZERO);
         
         assertThat(audits.get(1).getVersion()).isEqualTo(2);
-        assertThat(audits.get(1).getActualBalance()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(audits.get(1).getActualBalance()).isEqualByComparingTo(BigDecimal.valueOf(100));
         
         assertThat(audits.get(2).getVersion()).isEqualTo(3);
-        assertThat(audits.get(2).getActualBalance()).isEqualByComparingTo(creditAmount);
+        assertThat(audits.get(2).getActualBalance()).isEqualByComparingTo(BigDecimal.valueOf(600));
         
         assertThat(audits.get(3).getVersion()).isEqualTo(4);
-        assertThat(audits.get(3).getActualBalance()).isEqualByComparingTo(creditAmount);
+        assertThat(audits.get(3).getActualBalance()).isEqualByComparingTo(BigDecimal.valueOf(600));
     }
 
     @Test

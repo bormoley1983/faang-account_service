@@ -44,9 +44,11 @@ public class BalanceAuditingAspect {
 
     @AfterReturning(value = "getAuditableMethods()", returning = "result")
     public void afterSuccessfulOperation(Balance result) {
-        if (result != null) {
+        if (result != null && entityManager.contains(result)) {
             entityManager.flush();
             entityManager.refresh(result);
+            balanceAuditService.createSuccessfulAudit(result);
+        } else if (result != null) {
             balanceAuditService.createSuccessfulAudit(result);
         }
     }

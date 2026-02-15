@@ -11,14 +11,17 @@ import faang.school.accountservice.enums.Currency;
 import faang.school.accountservice.model.Account;
 import faang.school.accountservice.model.Tariff;
 import faang.school.accountservice.repository.AccountRepository;
+import faang.school.accountservice.repository.BalanceRepository;
 import faang.school.accountservice.repository.SavingsAccountRepository;
 import faang.school.accountservice.repository.TariffRepository;
+import faang.school.accountservice.repository.BalanceAuditRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -30,15 +33,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
 @AutoConfigureMockMvc
+@SpringBootTest
+@ActiveProfiles("test")
 public class SavingsAccountControllerIT extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private SavingsAccountRepository savingsAccountRepository;
@@ -49,12 +52,20 @@ public class SavingsAccountControllerIT extends BaseIntegrationTest {
     @Autowired
     private AccountRepository accountRepository;
 
+    @Autowired
+    private BalanceRepository balanceRepository;
+
+    @Autowired
+    private BalanceAuditRepository balanceAuditRepository;
+
     private Long testAccountId;
     private Long testTariffId;
 
     @BeforeEach
     void setUp() {
+        balanceAuditRepository.deleteAll();
         savingsAccountRepository.deleteAll();
+        balanceRepository.deleteAll();
         accountRepository.deleteAll();
         tariffRepository.deleteAll();
 

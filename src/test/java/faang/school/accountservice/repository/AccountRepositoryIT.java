@@ -12,14 +12,18 @@ import faang.school.accountservice.model.FreeAccountNumber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
+@AutoConfigureMockMvc
+@SpringBootTest
+@ActiveProfiles("test")
 public class AccountRepositoryIT extends BaseIntegrationTest {
 
     @Autowired
@@ -31,13 +35,27 @@ public class AccountRepositoryIT extends BaseIntegrationTest {
     @Autowired
     private FreeAccountRepository freeAccountRepository;
 
+    @Autowired
+    private SavingsAccountRepository savingsAccountRepository;
+
+    @Autowired
+    private BalanceRepository balanceRepository;
+
     private Long accountId;
     private final Long ownerId = 1L;
 
     @BeforeEach
     void setUp() {
+        savingsAccountRepository.deleteAll();
+        balanceRepository.deleteAll();
+        accountRepository.deleteAll();
+        accountSeqRepository.deleteAll();
+        freeAccountRepository.deleteAll();
+        
+        String uniqueAccountNumber = String.valueOf(System.nanoTime());
+
         Account account = Account.builder()
-                .number("123456789012")
+                .number(uniqueAccountNumber)
                 .ownerId(ownerId)
                 .status(AccountStatus.ACTIVE)
                 .type(AccountType.SAVINGS)

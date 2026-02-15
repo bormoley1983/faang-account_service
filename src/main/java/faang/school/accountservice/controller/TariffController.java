@@ -26,13 +26,13 @@ public class TariffController {
 
     @PostMapping
     public ResponseEntity<TariffDto> addTariff(@Valid @RequestBody RegisterTariffDto tariffDto) {
-        Tariff tariff = tariffService.addTariff(tariffDto.getName(), tariffDto.getRateHistory());
+        Tariff tariff = tariffService.addTariff(tariffDto.getName(), tariffDto.getRate());
         return ResponseEntity.ok(tariffMapped.toDto(tariff));
     }
 
     @PostMapping("/{tariffId}")
     public ResponseEntity<TariffDto> changeTariff(@PathVariable Long tariffId,@Valid @RequestBody RegisterTariffDto tariffDto) {
-        Tariff tariff = tariffService.changeTariff(tariffId, tariffDto.getName(), tariffDto.getRateHistory());
+        Tariff tariff = tariffService.changeTariff(tariffId, tariffDto.getName(), tariffDto.getRate());
         return ResponseEntity.ok(tariffMapped.toDto(tariff));
     }
 

@@ -1,7 +1,6 @@
 package faang.school.accountservice.controller;
 
 import faang.school.accountservice.config.BaseIntegrationTest;
-import faang.school.accountservice.config.context.UserContext;
 import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.enums.Currency;
@@ -9,12 +8,14 @@ import faang.school.accountservice.model.Account;
 import faang.school.accountservice.model.Balance;
 import faang.school.accountservice.repository.BalanceRepository;
 import faang.school.accountservice.service.AccountService;
+import faang.school.accountservice.service.BalanceAuditService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -28,8 +29,9 @@ import java.util.concurrent.Executors;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 
-@SpringBootTest
 @AutoConfigureMockMvc
+@SpringBootTest
+@ActiveProfiles("test")
 public class BalanceControllerIT extends BaseIntegrationTest {
 
     @Autowired
@@ -39,10 +41,10 @@ public class BalanceControllerIT extends BaseIntegrationTest {
     private BalanceRepository balanceRepository;
 
     @MockitoBean
-    private UserContext userContext;
+    private AccountService accountService;
 
     @MockitoBean
-    private AccountService accountService;
+    private BalanceAuditService balanceAuditService;
 
     private Balance testBalance;
 
@@ -73,6 +75,7 @@ public class BalanceControllerIT extends BaseIntegrationTest {
     @Test
     public void testGetBalance() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/balance/{accountId}", 1)
+                        .header("x-user-id", "12345")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.accountId").value(1))
@@ -84,6 +87,7 @@ public class BalanceControllerIT extends BaseIntegrationTest {
     public void testCreditBalance() throws Exception {
 
         mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/credits", 1)
+                        .header("x-user-id", "12345")
                         .param("amount", "50.00"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.actualBalance").value("150.0"));
@@ -92,6 +96,7 @@ public class BalanceControllerIT extends BaseIntegrationTest {
     @Test
     public void testDebitBalance() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/debits", 1)
+                        .header("x-user-id", "12345")
                         .param("amount", "50.00"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.actualBalance").value("50.0"));
@@ -100,6 +105,7 @@ public class BalanceControllerIT extends BaseIntegrationTest {
     @Test
     public void testAuthorizeAmount() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/authorizations", 1)
+                        .header("x-user-id", "12345")
                         .param("amount", "50.00"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.authorizedBalance").value("50.0"))
@@ -111,6 +117,7 @@ public class BalanceControllerIT extends BaseIntegrationTest {
         testBalance.setAuthorizedBalance(new BigDecimal("50.00"));
 
         mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/authorizations/commit", 1)
+                        .header("x-user-id", "12345")
                         .param("amount", "50.00"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.authorizedBalance").value("0.0"))
@@ -122,6 +129,7 @@ public class BalanceControllerIT extends BaseIntegrationTest {
         testBalance.setAuthorizedBalance(new BigDecimal("50.00"));
 
         mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/authorizations/cancel", 1)
+                        .header("x-user-id", "12345")
                         .param("amount", "50.00"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.authorizedBalance").value("0.0"))
@@ -148,6 +156,7 @@ public class BalanceControllerIT extends BaseIntegrationTest {
         Runnable task = () -> {
             try {
                 mockMvc.perform(MockMvcRequestBuilders.post("/balance/{accountId}/debits", 1)
+                                .header("x-user-id", "12345")
                                 .param("amount", "60.00"))
                         .andExpect(MockMvcResultMatchers.status().isConflict());
             } catch (Exception e) {

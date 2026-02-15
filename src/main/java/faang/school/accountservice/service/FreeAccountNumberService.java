@@ -70,7 +70,6 @@ public class FreeAccountNumberService {
                 .ifPresentOrElse(
                         freeAccountNumber -> {
                             account.setNumber(String.valueOf(freeAccountNumber.getId().getAccountNumber()));
-                            freeAccountRepository.delete(freeAccountNumber);
                             accountRepository.save(account);
                             log.info("Assigned account number: {} to account", freeAccountNumber.getId().getAccountNumber());
                         },

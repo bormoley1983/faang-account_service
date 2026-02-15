@@ -13,7 +13,9 @@ import java.util.List;
 @Converter
 public class TariffHistoryConverter implements AttributeConverter<List<TariffHistorySnapshot>, String> {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
+            .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     @Override
     public String convertToDatabaseColumn(List<TariffHistorySnapshot> attribute) {

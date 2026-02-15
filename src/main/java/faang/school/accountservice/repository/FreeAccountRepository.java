@@ -3,6 +3,7 @@ package faang.school.accountservice.repository;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.model.FreeAccountId;
 import faang.school.accountservice.model.FreeAccountNumber;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -24,8 +25,8 @@ public interface FreeAccountRepository extends JpaRepository<FreeAccountNumber, 
             )
             RETURNING type, account_number;
             """, nativeQuery = true)
-    Optional<FreeAccountNumber> retrieveFirst(String type);
+    Optional<FreeAccountNumber> retrieveFirst(@Param("type") String type);
 
     @Query("SELECT COUNT(f) FROM FreeAccountNumber f WHERE f.id.type = :type")
-    int countByType(AccountType type);
+    int countByType(@Param("type") AccountType type);
 }

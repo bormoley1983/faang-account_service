@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -23,15 +24,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
 @AutoConfigureMockMvc
+@SpringBootTest
+@ActiveProfiles("test")
 public class TariffControllerIT extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private TariffRepository tariffRepository;
@@ -63,7 +64,7 @@ public class TariffControllerIT extends BaseIntegrationTest {
     void testAddTariff() throws Exception {
         RegisterTariffDto request = RegisterTariffDto.builder()
                 .name("Premium Plan")
-                .rateHistory(new BigDecimal("19.99"))
+                .rate(new BigDecimal("19.99"))
                 .build();
 
         mockMvc.perform(post("/tariff")
@@ -76,10 +77,51 @@ public class TariffControllerIT extends BaseIntegrationTest {
     }
 
     @Test
+    void testChangeTariff_valid() throws Exception {
+        RegisterTariffDto request = RegisterTariffDto.builder()
+                .name("Premium Plan")
+                .rate(new BigDecimal("19.99"))
+                .build();
+
+        mockMvc.perform(post("/tariff/" + testTariffId)
+                        .header("x-user-id", "12345")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Premium Plan"))
+                .andExpect(jsonPath("$.rateHistory[0]").value(19.99));
+    }
+
+    @Test
+    void testChangeTariff_tariffNotFound() throws Exception {
+        RegisterTariffDto request = RegisterTariffDto.builder()
+                .name("Premium Plan")
+                .rate(new BigDecimal("19.99"))
+                .build();
+
+        mockMvc.perform(post("/tariff/999999")
+                        .header("x-user-id", "12345")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testChangeTariff_invalidBody() throws Exception {
+        // Missing name and rateHistory
+        String invalidJson = "{}";
+        mockMvc.perform(post("/tariff/" + testTariffId)
+                        .header("x-user-id", "12345")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void testChangeTariff() throws Exception {
         RegisterTariffDto request = RegisterTariffDto.builder()
                 .name("Premium Plan")
-                .rateHistory(new BigDecimal("19.99"))
+                .rate(new BigDecimal("19.99"))
                 .build();
 
         mockMvc.perform(post("/tariff/" + testTariffId)
