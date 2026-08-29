@@ -53,7 +53,7 @@ public class BalanceControllerIT extends BaseIntegrationTest {
         Account testAccount = Account.builder()
                 .id(1L)
                 .number("1234567890")
-                .ownerId(100L)
+                .ownerId(12345L)
                 .type(AccountType.CHECKING)
                 .currency(Currency.USD)
                 .status(AccountStatus.ACTIVE)
@@ -70,6 +70,8 @@ public class BalanceControllerIT extends BaseIntegrationTest {
         Mockito.when(balanceRepository.findByAccountId(1L)).thenReturn(testBalance);
         Mockito.when(accountService.getAccount(1L)).thenReturn(testAccount);
         Mockito.when(balanceRepository.save(Mockito.any(Balance.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        Mockito.when(accountService.blockAccount(1L)).thenAnswer(invocation -> testAccount);
+        Mockito.when(accountService.closeAccount(1L)).thenAnswer(invocation -> testAccount);
     }
 
     @Test

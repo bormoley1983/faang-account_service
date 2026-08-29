@@ -89,7 +89,8 @@ public class TariffControllerIT extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Premium Plan"))
-                .andExpect(jsonPath("$.rateHistory[0]").value(19.99));
+                .andExpect(jsonPath("$.rateHistory[0]").value(1))
+                .andExpect(jsonPath("$.rateHistory[4]").value(19.99));
     }
 
     @Test
@@ -130,6 +131,7 @@ public class TariffControllerIT extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Premium Plan"))
-                .andExpect(jsonPath("$.rateHistory[0]").value(19.99));
+                .andExpect(jsonPath("$.rateHistory[0]").value(1))
+                .andExpect(jsonPath("$.rateHistory[4]").value(19.99));
     }
 }

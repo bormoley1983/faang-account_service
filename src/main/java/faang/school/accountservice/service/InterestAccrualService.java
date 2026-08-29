@@ -10,12 +10,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
 @Service
@@ -29,10 +31,17 @@ public class InterestAccrualService {
 
     @Async("interestAccrualExecutor")
     @Retryable()
-    public void accrueInterestForAccount(SavingsAccount account, LocalDate today) {
+    @Transactional
+    public CompletableFuture<Void> accrueInterestForAccount(Long accountId, LocalDate today) {
+        return CompletableFuture.runAsync(() -> doAccrue(accountId, today));
+    }
+
+    private void doAccrue(Long accountId, LocalDate today) {
+        SavingsAccount account = savingsAccountRepository.findById(accountId)
+                .orElseThrow(() -> new EntityNotFoundException("Savings account not found: " + accountId));
 
         LocalDate lastDate = account.getLastInterestDate();
-        LocalDate startDate = (lastDate != null) ? lastDate.plusDays(1) : account.getCreatedAt().toLocalDate();
+        LocalDate startDate = (lastDate != null) ? lastDate : account.getCreatedAt().toLocalDate();
         long days = ChronoUnit.DAYS.between(startDate, today);
 
         if (account.getBalance().compareTo(BigDecimal.ZERO) <= 0) {

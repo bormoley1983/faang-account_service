@@ -4,7 +4,7 @@ import com.redis.testcontainers.RedisContainer;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.Network;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -15,12 +15,12 @@ public abstract class BaseIntegrationTest {
     private static final DockerImageName POSTGRES_IMAGE = DockerImageName.parse("postgres:18-alpine");
     private static final DockerImageName REDIS_IMAGE = DockerImageName.parse("redis:8-alpine");
 
-    protected static final PostgreSQLContainer<?> POSTGRESQL_CONTAINER;
+    protected static final PostgreSQLContainer POSTGRESQL_CONTAINER;
     protected static final RedisContainer REDIS_CONTAINER;
 
     static {
         Network testNetwork = Network.newNetwork();
-        POSTGRESQL_CONTAINER = new PostgreSQLContainer<>(POSTGRES_IMAGE)
+        POSTGRESQL_CONTAINER = new PostgreSQLContainer(POSTGRES_IMAGE)
                 .withNetwork(testNetwork)
                 .withNetworkAliases("test-postgres")
                 .withDatabaseName("testdb")

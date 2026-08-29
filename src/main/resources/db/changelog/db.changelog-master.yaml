@@ -9,3 +9,11 @@ databaseChangeLog:
       file: db/changelog/changeset/V004__account-service_account.sql
   - include:
       file: db/changelog/changeset/V005__savings_account.sql
+  - include:
+      file: db/changelog/changeset/V006__unique_balance_per_account.sql
+  - include:
+      file: db/changelog/changeset/V007__allow_debit_account_type.sql
+  - include:
+      file: db/changelog/changeset/V008__balance_audit_operation_metadata.sql
+  - include:
+      file: db/changelog/changeset/V009__cluster_lease.sql

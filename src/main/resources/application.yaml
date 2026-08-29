@@ -48,6 +48,8 @@ logging:
     liquibase: info
 
 account:
+  security:
+    admin-user-ids: ${ADMIN_USER_IDS:}
   number:
     min-free: 10
     batch-size: 5

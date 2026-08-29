@@ -1,5 +1,7 @@
 package faang.school.accountservice.controller;
 
+import faang.school.accountservice.config.context.OwnershipChecker;
+import faang.school.accountservice.config.context.UserContext;
 import faang.school.accountservice.dto.savingsAccount.AmountDto;
 import faang.school.accountservice.dto.savingsAccount.SavingsAccountDto;
 import faang.school.accountservice.dto.savingsAccount.SavingsAccountRegisterDto;
@@ -22,10 +24,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class SavingsAccountController {
     private final SavingsAccountMapper savingsAccountMapper;
     private final SavingsAccountService savingsAccountService;
+    private final UserContext userContext;
+    private final OwnershipChecker ownershipChecker;
 
     @PostMapping("/{accountId}")
     public ResponseEntity<SavingsAccountDto> openSavingsAccount(@PathVariable Long accountId,
                                                                 @Valid @RequestBody SavingsAccountRegisterDto registerDto) {
+        ownershipChecker.assertCanAccess(accountId);
         SavingsAccount savingsAccount = savingsAccountService.openSavingsAccount(accountId,
                 registerDto.getTariffId());
         return ResponseEntity.ok(savingsAccountMapper.toDto(savingsAccount));
@@ -33,12 +38,16 @@ public class SavingsAccountController {
 
     @GetMapping("/{accountId}")
     public ResponseEntity<SavingsAccountDto> getSavingsAccount(@PathVariable Long accountId) {
+        ownershipChecker.assertCanAccess(accountId);
         SavingsAccount savingsAccount = savingsAccountService.getSavingsAccount(accountId);
         return ResponseEntity.ok(savingsAccountMapper.toDto(savingsAccount));
     }
 
     @GetMapping("/owner/{ownerId}")
     public ResponseEntity<SavingsAccountDto> getSavingsAccountByOwnerId(@PathVariable Long ownerId) {
+        if (userContext.getUserId() == null || !userContext.getUserId().equals(ownerId)) {
+            throw new SecurityException("Authenticated user is required and must match the requested owner");
+        }
         SavingsAccount savingsAccount = savingsAccountService.getSavingsAccountByOwnerId(ownerId);
         return ResponseEntity.ok(savingsAccountMapper.toDto(savingsAccount));
     }
@@ -46,6 +55,7 @@ public class SavingsAccountController {
     @PostMapping("/{accountId}/deposit")
     public ResponseEntity<SavingsAccountDto> deposit(@PathVariable Long accountId,
                                                      @Valid @RequestBody AmountDto amount) {
+        ownershipChecker.assertCanAccess(accountId);
         SavingsAccount savingsAccount = savingsAccountService.deposit(accountId, amount.getAmount());
         return ResponseEntity.ok(savingsAccountMapper.toDto(savingsAccount));
     }
@@ -53,6 +63,7 @@ public class SavingsAccountController {
     @PostMapping("/{accountId}/withdraw")
     public ResponseEntity<SavingsAccountDto> withdraw(@PathVariable Long accountId,
                                                       @Valid @RequestBody AmountDto amount) {
+        ownershipChecker.assertCanAccess(accountId);
         SavingsAccount savingsAccount = savingsAccountService.withdraw(accountId, amount.getAmount());
         return ResponseEntity.ok(savingsAccountMapper.toDto(savingsAccount));
     }

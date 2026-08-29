@@ -72,7 +72,7 @@ public class SavingsAccountControllerIT extends BaseIntegrationTest {
         String uniqueNumber = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
         Account account = new Account();
         account.setNumber(uniqueNumber);
-        account.setOwnerId(1L);
+        account.setOwnerId(12345L);
         account.setStatus(AccountStatus.ACTIVE);
         account.setType(AccountType.SAVINGS);
         account.setCurrency(Currency.USD);
@@ -135,7 +135,7 @@ public class SavingsAccountControllerIT extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/savingsAccount/owner/1")
+        mockMvc.perform(get("/savingsAccount/owner/12345")
                         .header("x-user-id", "12345")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -180,12 +180,21 @@ public class SavingsAccountControllerIT extends BaseIntegrationTest {
                 .andExpect(status().isOk());
 
         AmountDto deposit = new AmountDto();
-        deposit.setAmount(new BigDecimal("0"));
+        deposit.setAmount(new BigDecimal("10"));
+
+        mockMvc.perform(post("/savingsAccount/" + testAccountId + "/deposit")
+                        .header("x-user-id", "12345")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(deposit)))
+                .andExpect(status().isOk());
+
+        AmountDto withdraw = new AmountDto();
+        withdraw.setAmount(new BigDecimal("5"));
 
         mockMvc.perform(post("/savingsAccount/" + testAccountId + "/withdraw")
                         .header("x-user-id", "12345")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(deposit)))
+                        .content(objectMapper.writeValueAsString(withdraw)))
                 .andExpect(status().isOk());
     }
 }

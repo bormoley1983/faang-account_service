@@ -3,6 +3,7 @@ package faang.school.accountservice.service;
 import faang.school.accountservice.config.BaseIntegrationTest;
 import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
+import faang.school.accountservice.enums.BalanceAuditOutcome;
 import faang.school.accountservice.enums.Currency;
 import faang.school.accountservice.model.Account;
 import faang.school.accountservice.model.BalanceAudit;
@@ -80,7 +81,7 @@ public class BalanceAuditServiceIT extends BaseIntegrationTest {
     public void balanceAuditingIT() {
         int actualBalance = 100;
         int withdrawAmount = 200;
-        List<Integer> expectedVersions = List.of(1, 2, 2);
+        List<Integer> expectedVersions = List.of(0, 1, 1);
         List<BigDecimal> expectedBalances = List.of(BigDecimal.ZERO.setScale(2),
                 BigDecimal.valueOf(actualBalance).setScale(2),
                 BigDecimal.valueOf(actualBalance).setScale(2));
@@ -102,6 +103,20 @@ public class BalanceAuditServiceIT extends BaseIntegrationTest {
         assertEquals(3, audits.size());
         assertEquals(expectedVersions, actualVersions);
         assertEquals(expectedBalances, actualBalances);
+        assertThat(audits)
+                .extracting(BalanceAudit::getTransactionId)
+                .doesNotContainNull()
+                .doesNotHaveDuplicates()
+                .allMatch(transactionId -> transactionId.version() == 7);
+        assertThat(audits)
+                .extracting(BalanceAudit::getOutcome)
+                .containsExactly(
+                        BalanceAuditOutcome.SUCCESS,
+                        BalanceAuditOutcome.SUCCESS,
+                        BalanceAuditOutcome.FAILED
+                );
+        assertThat(audits.get(2).getOperation()).isEqualTo("authorizeAmount");
+        assertThat(audits.get(2).getFailureReason()).isEqualTo("Insufficient funds");
     }
 
     @Test
@@ -116,16 +131,16 @@ public class BalanceAuditServiceIT extends BaseIntegrationTest {
         List<BalanceAudit> audits = balanceAuditRepository.findAll();
 
         assertThat(audits).hasSize(4);
-        assertThat(audits.get(0).getVersion()).isEqualTo(1);
+        assertThat(audits.get(0).getVersion()).isZero();
         assertThat(audits.get(0).getActualBalance()).isEqualByComparingTo(BigDecimal.ZERO);
         
-        assertThat(audits.get(1).getVersion()).isEqualTo(2);
+        assertThat(audits.get(1).getVersion()).isEqualTo(1);
         assertThat(audits.get(1).getActualBalance()).isEqualByComparingTo(BigDecimal.valueOf(100));
         
-        assertThat(audits.get(2).getVersion()).isEqualTo(3);
+        assertThat(audits.get(2).getVersion()).isEqualTo(2);
         assertThat(audits.get(2).getActualBalance()).isEqualByComparingTo(BigDecimal.valueOf(600));
         
-        assertThat(audits.get(3).getVersion()).isEqualTo(4);
+        assertThat(audits.get(3).getVersion()).isEqualTo(3);
         assertThat(audits.get(3).getActualBalance()).isEqualByComparingTo(BigDecimal.valueOf(600));
     }
 

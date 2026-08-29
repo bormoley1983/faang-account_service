@@ -44,23 +44,31 @@ public class TariffServiceTest {
     }
 
     @Test
-    void changeTariff(){
+    void changeTariffAppendsRateWithoutDestroyingHistory(){
         Long tariffId = 1L;
-        String name = "standart";
-        BigDecimal prozent = new BigDecimal("100");
-        Tariff tariff = new Tariff();
-        List<BigDecimal> prozents = tariff.getRateHistory();
-        prozents.add(prozent);
-        tariff.setRateHistory(prozents);
+        String name = "standard";
+        BigDecimal newRate = new BigDecimal("10.00");
+        List<BigDecimal> existingHistory = List.of(
+                new BigDecimal("5.00"),
+                new BigDecimal("7.50")
+        );
+        Tariff tariff = Tariff.builder()
+                .name("old name")
+                .rateHistory(existingHistory)
+                .build();
 
         Mockito.when(tariffRepository.findById(tariffId)).thenReturn(Optional.of(tariff));
-        tariffService.changeTariff(tariffId, name, prozent);
+        tariffService.changeTariff(tariffId, name, newRate);
         ArgumentCaptor<Tariff> captor = ArgumentCaptor.forClass(Tariff.class);
         Mockito.verify(tariffRepository).save(captor.capture());
         Tariff capturedValue = captor.getValue();
 
-        Assertions.assertEquals(tariff.getName(), capturedValue.getName());
-        Assertions.assertEquals(tariff.getRateHistory(),capturedValue.getRateHistory());
+        Assertions.assertEquals(name, capturedValue.getName());
+        Assertions.assertEquals(
+                List.of(new BigDecimal("5.00"), new BigDecimal("7.50"), newRate),
+                capturedValue.getRateHistory()
+        );
+        Assertions.assertNotSame(existingHistory, capturedValue.getRateHistory());
     }
 
     @Test

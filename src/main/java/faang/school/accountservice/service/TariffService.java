@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -31,7 +32,11 @@ public class TariffService {
                 .orElseThrow(() -> new TariffNotFound("Tariff not found"));
 
         tariff.setName(name);
-        tariff.setRateHistory(List.of(prozent));
+        List<BigDecimal> rateHistory = tariff.getRateHistory() == null
+                ? new ArrayList<>()
+                : new ArrayList<>(tariff.getRateHistory());
+        rateHistory.add(prozent);
+        tariff.setRateHistory(rateHistory);
 
         return tariffRepository.save(tariff);
     }

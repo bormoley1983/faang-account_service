@@ -62,6 +62,7 @@ public class SavingsAccountService {
 
     @Transactional
     public SavingsAccount deposit(Long accountId, BigDecimal amount) {
+        validatePositiveAmount(amount);
         SavingsAccount account = savingsAccountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
         account.setBalance(account.getBalance().add(amount));
@@ -70,6 +71,7 @@ public class SavingsAccountService {
 
     @Transactional
     public SavingsAccount withdraw(Long accountId, BigDecimal amount) {
+        validatePositiveAmount(amount);
         SavingsAccount account = savingsAccountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
         if (account.getBalance().compareTo(amount) < 0) {
@@ -77,6 +79,12 @@ public class SavingsAccountService {
         }
         account.setBalance(account.getBalance().subtract(amount));
         return savingsAccountRepository.save(account);
+    }
+
+    private void validatePositiveAmount(BigDecimal amount) {
+        if (amount == null || amount.signum() <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
     }
 
     private TariffSnapshot buildTariffSnapshot(Tariff tariff) {

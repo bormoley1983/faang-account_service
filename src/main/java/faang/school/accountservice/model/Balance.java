@@ -1,6 +1,5 @@
 package faang.school.accountservice.model;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -32,8 +31,8 @@ public class Balance {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "account_id", nullable = false)
+    @OneToOne
+    @JoinColumn(name = "account_id", nullable = false, unique = true)
     private Account account;
 
     @Column(name = "authorized_balance", nullable = false)
@@ -50,11 +49,10 @@ public class Balance {
 
     @Version
     @Column(name = "version", nullable = false)
-    private int version;
+    private Integer version;
 
     @PrePersist
     protected void onCreate() {
-        this.version = 1;
         this.authorizedBalance = BigDecimal.ZERO;
         this.actualBalance = BigDecimal.ZERO;
         this.createdAt = LocalDateTime.now();

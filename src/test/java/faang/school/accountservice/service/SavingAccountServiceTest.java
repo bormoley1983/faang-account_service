@@ -119,8 +119,9 @@ public class SavingAccountServiceTest {
     @Test
     void withdraw() {
         Long accountId = 1L;
-        BigDecimal amount = new BigDecimal("0.00");
+        BigDecimal amount = new BigDecimal("5.00");
         SavingsAccount savingsAccount = new SavingsAccount();
+        savingsAccount.setBalance(new BigDecimal("10.00"));
         Mockito.when(savingsAccountRepository.findById(accountId)).thenReturn(Optional.of(savingsAccount));
         savingsAccountService.withdraw(accountId, amount);
         ArgumentCaptor<SavingsAccount> savingsAccountArgumentCaptor = ArgumentCaptor.forClass(SavingsAccount.class);

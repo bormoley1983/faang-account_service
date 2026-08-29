@@ -1,55 +1,88 @@
 package faang.school.accountservice.aspects;
 
+import faang.school.accountservice.annotations.Auditable;
 import faang.school.accountservice.model.Balance;
 import faang.school.accountservice.service.BalanceAuditService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import faang.school.accountservice.service.id.UuidV7Generator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.AfterReturning;
-import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
-import org.aspectj.lang.reflect.CodeSignature;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.util.Arrays;
+import java.util.UUID;
 
 @Slf4j
 @Aspect
+@Order(0)
 @RequiredArgsConstructor
 @Component
 public class BalanceAuditingAspect {
 
     private final BalanceAuditService balanceAuditService;
+    private final UuidV7Generator uuidV7Generator;
 
-    @PersistenceContext
-    private final EntityManager entityManager;
+    @Around("@annotation(auditable)")
+    public Object auditBalanceOperation(ProceedingJoinPoint joinPoint, Auditable auditable) throws Throwable {
+        long accountId = getAccountId(joinPoint.getArgs(), auditable.accountIdArgument());
+        UUID transactionId = uuidV7Generator.generate();
+        String operation = ((MethodSignature) joinPoint.getSignature()).getMethod().getName();
 
-    @Pointcut("@annotation(faang.school.accountservice.annotations.Auditable)")
-    public void getAuditableMethods() {
+        try {
+            Object result = joinPoint.proceed();
+            if (result instanceof Balance balance) {
+                persistSuccessfulAuditAfterCommit(balance, transactionId, operation);
+            }
+            return result;
+        } catch (Throwable businessException) {
+            try {
+                balanceAuditService.createFailedAudit(
+                        accountId,
+                        transactionId,
+                        operation,
+                        businessException.getMessage()
+                );
+            } catch (RuntimeException auditException) {
+                log.error("Failed to persist failed balance audit for transaction {}",
+                        transactionId, auditException);
+            }
+            throw businessException;
+        }
     }
 
-    @AfterThrowing(value = "getAuditableMethods()", throwing = "ex")
-    public void afterFailedOperation(JoinPoint joinPoint, IllegalStateException ex) {
-        log.info("Balance operation is failed in method: {}. Exception is thrown: {}", joinPoint.toString(), ex.toString());
-
-        CodeSignature codeSignature = (CodeSignature) joinPoint.getSignature();
-        int index = Arrays.asList(codeSignature.getParameterNames()).indexOf("accountId");
-        long id = (long) joinPoint.getArgs()[index];
-
-        balanceAuditService.createFailedAudit(id);
+    private long getAccountId(Object[] arguments, int accountIdArgument) {
+        if (accountIdArgument < 0 || accountIdArgument >= arguments.length
+                || !(arguments[accountIdArgument] instanceof Number accountId)) {
+            throw new IllegalStateException("Auditable method must identify a numeric account ID argument");
+        }
+        return accountId.longValue();
     }
 
-    @AfterReturning(value = "getAuditableMethods()", returning = "result")
-    public void afterSuccessfulOperation(Balance result) {
-        if (result != null && entityManager.contains(result)) {
-            entityManager.flush();
-            entityManager.refresh(result);
-            balanceAuditService.createSuccessfulAudit(result);
-        } else if (result != null) {
-            balanceAuditService.createSuccessfulAudit(result);
+    private void persistSuccessfulAuditAfterCommit(Balance balance, UUID transactionId, String operation) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        balanceAuditService.createSuccessfulAudit(balance, transactionId, operation);
+                    } catch (RuntimeException auditException) {
+                        log.error("Failed to persist successful balance audit for transaction {}",
+                                transactionId, auditException);
+                    }
+                }
+            });
+        } else {
+            try {
+                balanceAuditService.createSuccessfulAudit(balance, transactionId, operation);
+            } catch (RuntimeException auditException) {
+                log.error("Failed to persist successful balance audit for transaction {}",
+                        transactionId, auditException);
+            }
         }
     }
 }

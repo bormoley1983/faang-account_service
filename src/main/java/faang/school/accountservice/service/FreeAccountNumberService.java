@@ -4,8 +4,6 @@ import faang.school.accountservice.config.account.AccountProperties;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.model.Account;
 import faang.school.accountservice.model.AccountSeq;
-import faang.school.accountservice.model.FreeAccountId;
-import faang.school.accountservice.model.FreeAccountNumber;
 import faang.school.accountservice.repository.AccountRepository;
 import faang.school.accountservice.repository.AccountSeqRepository;
 import faang.school.accountservice.repository.FreeAccountRepository;
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-import java.util.stream.LongStream;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -111,24 +108,24 @@ public class FreeAccountNumberService {
     }
 
     private void processAccountNumbers(AccountType type, long baseNumber, long initialCounter, long counter) {
-        LongStream.range(initialCounter, counter)
-                .mapToObj(i -> new FreeAccountId(type, baseNumber + i))
-                .forEach(this::saveAccountNumber);
+        int requestedCount = Math.toIntExact(counter - initialCounter);
+        int insertedCount = freeAccountRepository.insertGeneratedBatch(
+                type.name(),
+                baseNumber,
+                initialCounter,
+                counter
+        );
 
-        log.info("Generated new account numbers for {}. Total count: {}", type, freeAccountRepository.countByType(type));
-    }
-
-    private void saveAccountNumber(FreeAccountId id) {
-        if (freeAccountRepository.existsById(id)) {
-            log.warn("Skipping duplicate account number: {}", id.getAccountNumber());
-            return;
+        if (insertedCount < requestedCount) {
+            log.warn(
+                    "Generated {} of {} requested account numbers for {} because existing numbers conflicted",
+                    insertedCount,
+                    requestedCount,
+                    type
+            );
         }
 
-        try {
-            freeAccountRepository.save(new FreeAccountNumber(id));
-            log.info("Saved account number: {}", id.getAccountNumber());
-        } catch (Exception e) {
-            log.error("Failed to save account number: {} | Error: {}", id.getAccountNumber(), e.getMessage());
-        }
+        log.info("Generated {} account numbers for {}. Total count: {}",
+                insertedCount, type, freeAccountRepository.countByType(type));
     }
 }

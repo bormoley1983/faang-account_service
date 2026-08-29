@@ -5,6 +5,7 @@ import faang.school.accountservice.enums.AccountStatus;
 import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.enums.Currency;
 import faang.school.accountservice.model.Account;
+import faang.school.accountservice.model.AccountSeq;
 import faang.school.accountservice.model.FreeAccountId;
 import faang.school.accountservice.model.FreeAccountNumber;
 import faang.school.accountservice.repository.AccountRepository;
@@ -14,10 +15,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.never;
@@ -85,5 +89,50 @@ class FreeAccountNumberServiceTest {
 
         verify(freeAccountRepository, times(1)).countByType(testAccountType);
         verify(accountSeqRepository, never()).incrementCounter(anyString(), anyInt());
+    }
+
+    @Test
+    void generateAccountNumbersPropagatesPersistenceFailure() {
+        AccountSeq updatedSequence = new AccountSeq(AccountType.DEBIT, 2L);
+        when(accountSeqRepository.incrementCounter(AccountType.DEBIT.name(), 2))
+                .thenReturn(Optional.of(updatedSequence));
+        when(freeAccountRepository.insertGeneratedBatch(
+                AccountType.DEBIT.name(),
+                4200000000000000L,
+                0L,
+                2L
+        ))
+                .thenThrow(new DataIntegrityViolationException("database rejected account number"));
+
+        assertThrows(
+                DataIntegrityViolationException.class,
+                () -> freeAccountNumberService.generateAccountNumbers(AccountType.DEBIT, 2)
+        );
+
+        verify(freeAccountRepository, never()).countByType(AccountType.DEBIT);
+    }
+
+    @Test
+    void generateAccountNumbersInsertsAllocatedRangeWithOneRepositoryCall() {
+        AccountSeq updatedSequence = new AccountSeq(AccountType.DEBIT, 5L);
+        when(accountSeqRepository.incrementCounter(AccountType.DEBIT.name(), 2))
+                .thenReturn(Optional.of(updatedSequence));
+        when(freeAccountRepository.insertGeneratedBatch(
+                AccountType.DEBIT.name(),
+                4200000000000000L,
+                3L,
+                5L
+        )).thenReturn(2);
+
+        freeAccountNumberService.generateAccountNumbers(AccountType.DEBIT, 2);
+
+        verify(freeAccountRepository).insertGeneratedBatch(
+                AccountType.DEBIT.name(),
+                4200000000000000L,
+                3L,
+                5L
+        );
+        verify(freeAccountRepository, never()).existsById(any());
+        verify(freeAccountRepository, never()).save(any(FreeAccountNumber.class));
     }
 }

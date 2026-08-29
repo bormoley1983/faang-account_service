@@ -41,6 +41,16 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<Map<String, String>> handleSecurityException(SecurityException ex) {
+        log.warn("Access denied: {}", ex.getMessage());
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Access denied");
+        response.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception ex) {
         ErrorMessages errorMessage = ERROR_STATUS_MAP.getOrDefault(ex.getClass(), ErrorMessages.INTERNAL_SERVER_ERROR);

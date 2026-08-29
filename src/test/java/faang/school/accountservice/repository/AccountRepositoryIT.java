@@ -6,6 +6,7 @@ import faang.school.accountservice.enums.AccountType;
 import faang.school.accountservice.enums.Currency;
 import faang.school.accountservice.model.Account;
 import faang.school.accountservice.model.AccountSeq;
+import faang.school.accountservice.model.Balance;
 import faang.school.accountservice.model.FreeAccountId;
 import faang.school.accountservice.model.FreeAccountNumber;
 
@@ -14,12 +15,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -123,5 +127,75 @@ public class AccountRepositoryIT extends BaseIntegrationTest {
         freeAccountRepository.deleteAll();
         Optional<FreeAccountNumber> freeAccountNumber = freeAccountRepository.retrieveFirst(AccountType.SAVINGS.name());
         assertThat(freeAccountNumber).isEmpty();
+    }
+
+    @Test
+    void databaseRejectsMoreThanOneBalanceForTheSameAccount() {
+        Account account = accountRepository.findById(accountId).orElseThrow();
+        balanceRepository.saveAndFlush(Balance.builder().account(account).build());
+
+        assertThatThrownBy(() -> balanceRepository.saveAndFlush(
+                Balance.builder().account(account).build()
+        )).isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void databaseAcceptsDebitAccountType() {
+        Account debitAccount = Account.builder()
+                .number(String.valueOf(System.nanoTime()))
+                .ownerId(ownerId)
+                .type(AccountType.DEBIT)
+                .currency(Currency.USD)
+                .status(AccountStatus.ACTIVE)
+                .build();
+
+        Account saved = accountRepository.saveAndFlush(debitAccount);
+
+        assertThat(saved.getType()).isEqualTo(AccountType.DEBIT);
+    }
+
+    @Test
+    void insertGeneratedBatchCreatesTheWholeRangeInOneStatement() {
+        int inserted = freeAccountRepository.insertGeneratedBatch(
+                AccountType.DEBIT.name(),
+                4200000000000000L,
+                100L,
+                103L
+        );
+
+        assertThat(inserted).isEqualTo(3);
+        assertThat(freeAccountRepository.findAll())
+                .extracting(number -> number.getId().getAccountNumber())
+                .contains(
+                        4200000000000100L,
+                        4200000000000101L,
+                        4200000000000102L
+                );
+    }
+
+    @Test
+    void jpaOwnsTheBalanceVersionLifecycle() {
+        Account account = accountRepository.findById(accountId).orElseThrow();
+        Balance balance = balanceRepository.saveAndFlush(Balance.builder().account(account).build());
+
+        assertThat(balance.getVersion()).isZero();
+
+        balance.setActualBalance(BigDecimal.ONE);
+        balance = balanceRepository.saveAndFlush(balance);
+
+        assertThat(balance.getVersion()).isEqualTo(1);
+    }
+
+    @Test
+    void deletingBalanceDoesNotCascadeToAccount() {
+        Account account = accountRepository.findById(accountId).orElseThrow();
+        Balance balance = balanceRepository.saveAndFlush(Balance.builder().account(account).build());
+        Long balanceId = balance.getId();
+
+        balanceRepository.delete(balance);
+        balanceRepository.flush();
+
+        assertThat(balanceRepository.existsById(balanceId)).isFalse();
+        assertThat(accountRepository.existsById(accountId)).isTrue();
     }
 }

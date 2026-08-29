@@ -21,11 +21,11 @@ public interface SavingsAccountRepository extends JpaRepository<SavingsAccount, 
     Optional<SavingsAccount> findByOwnerId(@Param("ownerId") Long ownerId);
 
     @Query(
-            value = "SELECT s.* " +
+            value = "SELECT s.account_id " +
                     "FROM savings_account s " +
                     "WHERE s.last_interest_date < :today " +
                     "OR s.last_interest_date IS NULL",
             nativeQuery = true
     )
-    List<SavingsAccount> findAllAccountsRequiringInterest(@Param("today") LocalDate today);
+    List<Long> findAllAccountIdsRequiringInterest(@Param("today") LocalDate today);
 }
