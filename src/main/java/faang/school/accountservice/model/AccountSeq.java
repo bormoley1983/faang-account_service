@@ -9,16 +9,22 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+
 import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.EqualsAndHashCode;
 
 @Table(name = "account_number_sequence")
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 public class AccountSeq {
 
+    @EqualsAndHashCode.Include
     @Id
     @Column(name = "type", nullable = false, length = 32)
     @Enumerated(value = EnumType.STRING)
