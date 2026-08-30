@@ -102,4 +102,36 @@ public class TariffServiceTest {
         Assertions.assertThrows(TariffNotFound.class,
                 ()-> tariffService.getTariff(tariffId));
     }
+
+    @Test
+    void changeTariff_whenRateHistoryNull_createsNewHistoryWithSingleRate() {
+        Long tariffId = 1L;
+        String name = "standard";
+        BigDecimal newRate = new BigDecimal("10.00");
+        Tariff tariff = Tariff.builder()
+                .name("old name")
+                .rateHistory(null)
+                .build();
+
+        Mockito.when(tariffRepository.findById(tariffId)).thenReturn(Optional.of(tariff));
+        tariffService.changeTariff(tariffId, name, newRate);
+        ArgumentCaptor<Tariff> captor = ArgumentCaptor.forClass(Tariff.class);
+        Mockito.verify(tariffRepository).save(captor.capture());
+        Tariff capturedValue = captor.getValue();
+
+        Assertions.assertEquals(name, capturedValue.getName());
+        Assertions.assertEquals(List.of(newRate), capturedValue.getRateHistory());
+    }
+
+    @Test
+    void addTariff_storesInitialRateInHistory() {
+        String name = "standart";
+        BigDecimal prozent = new BigDecimal("100");
+
+        tariffService.addTariff(name, prozent);
+        ArgumentCaptor<Tariff> captor = ArgumentCaptor.forClass(Tariff.class);
+        Mockito.verify(tariffRepository).save(captor.capture());
+
+        Assertions.assertEquals(List.of(prozent), captor.getValue().getRateHistory());
+    }
 }

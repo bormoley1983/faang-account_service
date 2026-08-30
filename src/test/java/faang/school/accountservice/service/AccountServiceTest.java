@@ -9,7 +9,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.InputStream;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,17 +42,6 @@ class AccountServiceTest {
         account.setNumber("123456789012");
         account.setOwnerId(1L);
         account.setStatus(AccountStatus.ACTIVE);
-    }
-
-    @Test
-    void verifyTestcontainersPropertiesLoaded() {
-        String reuseEnabled = System.getProperty("testcontainers.reuse.enable");
-        System.out.println("Testcontainers reuse.enable: " + reuseEnabled);
-        
-        // Check if properties are loaded
-        ClassLoader classLoader = getClass().getClassLoader();
-        InputStream is = classLoader.getResourceAsStream("testcontainers.properties");
-        System.out.println("testcontainers.properties found: " + (is != null));
     }
 
     @Test
@@ -112,5 +100,25 @@ class AccountServiceTest {
         assertNotNull(result.getClosedAt());
         verify(accountRepository, times(1)).findById(accountId);
         verify(accountRepository, times(1)).save(account);
+    }
+
+    @Test
+    void testBlockAccount_NotFound() {
+        when(accountRepository.findById(accountId)).thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> accountService.blockAccount(accountId));
+
+        assertEquals("Account not found with id: " + accountId, exception.getMessage());
+        verify(accountRepository, times(1)).findById(accountId);
+    }
+
+    @Test
+    void testCloseAccount_NotFound() {
+        when(accountRepository.findById(accountId)).thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> accountService.closeAccount(accountId));
+
+        assertEquals("Account not found with id: " + accountId, exception.getMessage());
+        verify(accountRepository, times(1)).findById(accountId);
     }
 }

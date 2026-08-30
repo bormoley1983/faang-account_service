@@ -11,6 +11,7 @@ import faang.school.accountservice.model.FreeAccountId;
 import faang.school.accountservice.model.FreeAccountNumber;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @AutoConfigureMockMvc
 @SpringBootTest
+@Tag("integration")
 @ActiveProfiles("test")
 public class AccountRepositoryIT extends BaseIntegrationTest {
 

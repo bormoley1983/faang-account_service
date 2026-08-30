@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Optional;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -54,6 +56,8 @@ class FreeAccountNumberServiceTest {
         when(accountProperties.getBaseNumber(anyString())).thenReturn("4200000000000000");
 
         freeAccountNumberService = spy(new FreeAccountNumberService(accountSeqRepository, freeAccountRepository, accountRepository, accountProperties));
+        ReflectionTestUtils.setField(freeAccountNumberService, "minFreeNumbers", 10);
+        ReflectionTestUtils.setField(freeAccountNumberService, "generationBatchSize", 100);
 
         account = Account.builder().id(1L).ownerId(1L).type(AccountType.DEBIT).currency(Currency.RUB).status(AccountStatus.ACTIVE).build();
         freeAccountNumber = new FreeAccountNumber(new FreeAccountId(AccountType.DEBIT, 4200000000000001L));
@@ -110,6 +114,65 @@ class FreeAccountNumberServiceTest {
         );
 
         verify(freeAccountRepository, never()).countByType(AccountType.DEBIT);
+    }
+
+    @Test
+    void ensureSufficientAccountNumbers_whenEnoughAvailable_doesNotGenerate() {
+        when(freeAccountRepository.countByType(AccountType.DEBIT)).thenReturn(10);
+
+        freeAccountNumberService.ensureSufficientAccountNumbers(AccountType.DEBIT);
+
+        verify(accountSeqRepository, never()).incrementCounter(anyString(), anyInt());
+    }
+
+    @Test
+    void ensureSufficientAccountNumbers_whenBelowMinimum_generatesBatch() {
+        when(freeAccountRepository.countByType(AccountType.DEBIT)).thenReturn(5);
+        AccountSeq updatedSequence = new AccountSeq(AccountType.DEBIT, 102L);
+        when(accountSeqRepository.incrementCounter(AccountType.DEBIT.name(), 100))
+                .thenReturn(Optional.of(updatedSequence));
+
+        freeAccountNumberService.ensureSufficientAccountNumbers(AccountType.DEBIT);
+
+        verify(freeAccountRepository).insertGeneratedBatch(
+                AccountType.DEBIT.name(), 4200000000000000L, 2L, 102L);
+    }
+
+    @Test
+    void generateAccountNumbers_whenPartialInsert_logsWarningAndContinues() {
+        // Covers the insertedCount < requestedCount warning branch in processAccountNumbers.
+        AccountSeq updatedSequence = new AccountSeq(AccountType.DEBIT, 5L);
+        when(accountSeqRepository.incrementCounter(AccountType.DEBIT.name(), 2))
+                .thenReturn(Optional.of(updatedSequence));
+        when(freeAccountRepository.insertGeneratedBatch(
+                AccountType.DEBIT.name(), 4200000000000000L, 3L, 5L)).thenReturn(1);
+        when(freeAccountRepository.countByType(AccountType.DEBIT)).thenReturn(1);
+
+        freeAccountNumberService.generateAccountNumbers(AccountType.DEBIT, 2);
+
+        verify(freeAccountRepository).insertGeneratedBatch(
+                AccountType.DEBIT.name(), 4200000000000000L, 3L, 5L);
+    }
+
+    @Test
+    void generateAccountNumbers_whenIncrementFails_doesNothing() {
+        when(accountSeqRepository.incrementCounter(AccountType.DEBIT.name(), 5))
+                .thenReturn(Optional.empty());
+
+        freeAccountNumberService.generateAccountNumbers(AccountType.DEBIT, 5);
+
+        verify(freeAccountRepository, never()).insertGeneratedBatch(anyString(), anyLong(), anyLong(), anyLong());
+    }
+
+    @Test
+    void generateAccountNumbers_whenBaseNumberInvalid_throwsIllegalState() {
+        AccountSeq updatedSequence = new AccountSeq(AccountType.DEBIT, 5L);
+        when(accountSeqRepository.incrementCounter(AccountType.DEBIT.name(), 2))
+                .thenReturn(Optional.of(updatedSequence));
+        when(accountProperties.getBaseNumber(anyString())).thenReturn("not-a-number");
+
+        assertThrows(IllegalStateException.class,
+                () -> freeAccountNumberService.generateAccountNumbers(AccountType.DEBIT, 2));
     }
 
     @Test

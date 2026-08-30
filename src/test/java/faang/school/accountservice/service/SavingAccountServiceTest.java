@@ -7,6 +7,7 @@ import faang.school.accountservice.model.Account;
 
 import faang.school.accountservice.model.SavingsAccount;
 import faang.school.accountservice.model.Tariff;
+import jakarta.persistence.EntityNotFoundException;
 import faang.school.accountservice.repository.AccountRepository;
 import faang.school.accountservice.repository.SavingsAccountRepository;
 import faang.school.accountservice.repository.TariffRepository;
@@ -150,5 +151,127 @@ public class SavingAccountServiceTest {
 
         Assertions.assertThrows(SavingsAccountNotFoundException.class,
                 () -> savingsAccountService.getSavingsAccount(accountId));
+    }
+
+    @Test
+    void openSavingsAccount_whenTariffMissing_throwsEntityNotFound() {
+        Long accountId = 1L;
+        Long tariffId = 99L;
+        Account account = new Account();
+        Mockito.when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        Mockito.when(tariffRepository.findById(tariffId)).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(EntityNotFoundException.class,
+                () -> savingsAccountService.openSavingsAccount(accountId, tariffId));
+    }
+
+    @Test
+    void openSavingsAccount_whenTariffHasNoRateHistory_throwsIllegalState() {
+        Long accountId = 1L;
+        Long tariffId = 1L;
+        Account account = new Account();
+        Tariff tariff = new Tariff();
+        tariff.setRateHistory(List.of());
+        Mockito.when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        Mockito.when(tariffRepository.findById(tariffId)).thenReturn(Optional.of(tariff));
+
+        IllegalStateException exception = Assertions.assertThrows(IllegalStateException.class,
+                () -> savingsAccountService.openSavingsAccount(accountId, tariffId));
+
+        Assertions.assertEquals("Tariff has no rate history", exception.getMessage());
+    }
+
+    @Test
+    void openSavingsAccount_whenTariffRateHistoryNull_throwsIllegalState() {
+        Long accountId = 1L;
+        Long tariffId = 1L;
+        Account account = new Account();
+        Tariff tariff = new Tariff();
+        tariff.setRateHistory(null);
+        Mockito.when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        Mockito.when(tariffRepository.findById(tariffId)).thenReturn(Optional.of(tariff));
+
+        Assertions.assertThrows(IllegalStateException.class,
+                () -> savingsAccountService.openSavingsAccount(accountId, tariffId));
+    }
+
+    @Test
+    void getSavingsAccountByOwnerId_whenExists_returnsAccount() {
+        Long ownerId = 7L;
+        SavingsAccount savingsAccount = new SavingsAccount();
+        Mockito.when(savingsAccountRepository.findByOwnerId(ownerId)).thenReturn(Optional.of(savingsAccount));
+
+        SavingsAccount result = savingsAccountService.getSavingsAccountByOwnerId(ownerId);
+
+        Assertions.assertEquals(savingsAccount, result);
+    }
+
+    @Test
+    void getSavingsAccountByOwnerId_whenMissing_throwsNotFound() {
+        Long ownerId = 7L;
+        Mockito.when(savingsAccountRepository.findByOwnerId(ownerId)).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(SavingsAccountNotFoundException.class,
+                () -> savingsAccountService.getSavingsAccountByOwnerId(ownerId));
+    }
+
+    @Test
+    void deposit_whenNullAmount_throwsIllegalArgument() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> savingsAccountService.deposit(1L, null));
+    }
+
+    @Test
+    void deposit_whenZeroAmount_throwsIllegalArgument() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> savingsAccountService.deposit(1L, BigDecimal.ZERO));
+    }
+
+    @Test
+    void deposit_whenNegativeAmount_throwsIllegalArgument() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> savingsAccountService.deposit(1L, new BigDecimal("-1.00")));
+    }
+
+    @Test
+    void withdraw_whenNullAmount_throwsIllegalArgument() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> savingsAccountService.withdraw(1L, null));
+    }
+
+    @Test
+    void withdraw_whenZeroAmount_throwsIllegalArgument() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> savingsAccountService.withdraw(1L, BigDecimal.ZERO));
+    }
+
+    @Test
+    void withdraw_whenNegativeAmount_throwsIllegalArgument() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> savingsAccountService.withdraw(1L, new BigDecimal("-1.00")));
+    }
+
+    @Test
+    void deposit_whenValidAmount_increasesBalance() {
+        Long accountId = 1L;
+        SavingsAccount savingsAccount = new SavingsAccount();
+        savingsAccount.setBalance(new BigDecimal("10.00"));
+        Mockito.when(savingsAccountRepository.findById(accountId)).thenReturn(Optional.of(savingsAccount));
+
+        savingsAccountService.deposit(accountId, new BigDecimal("5.00"));
+
+        Assertions.assertEquals(new BigDecimal("15.00"), savingsAccount.getBalance());
+    }
+
+    @Test
+    void withdraw_whenExactBalance_allowsFullWithdrawal() {
+        Long accountId = 1L;
+        SavingsAccount savingsAccount = new SavingsAccount();
+        savingsAccount.setBalance(new BigDecimal("10.00"));
+        Mockito.when(savingsAccountRepository.findById(accountId)).thenReturn(Optional.of(savingsAccount));
+
+        savingsAccountService.withdraw(accountId, new BigDecimal("10.00"));
+
+        Assertions.assertEquals(0, savingsAccount.getBalance().compareTo(BigDecimal.ZERO));
     }
 }

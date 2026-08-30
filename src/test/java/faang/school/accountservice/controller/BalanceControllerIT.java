@@ -11,6 +11,7 @@ import faang.school.accountservice.service.AccountService;
 import faang.school.accountservice.service.BalanceAuditService;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 
 @AutoConfigureMockMvc
 @SpringBootTest
+@Tag("integration")
 @ActiveProfiles("test")
 public class BalanceControllerIT extends BaseIntegrationTest {
 

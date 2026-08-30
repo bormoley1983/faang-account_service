@@ -16,6 +16,7 @@ import faang.school.accountservice.repository.SavingsAccountRepository;
 import faang.school.accountservice.repository.TariffRepository;
 import faang.school.accountservice.repository.BalanceAuditRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @SpringBootTest
+@Tag("integration")
 @ActiveProfiles("test")
 public class SavingsAccountControllerIT extends BaseIntegrationTest {
 

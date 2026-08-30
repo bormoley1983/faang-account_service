@@ -1,5 +1,6 @@
 plugins {
     java
+    jacoco
     id("org.springframework.boot") version "4.1.1"
     id("io.spring.dependency-management") version "1.1.7"
 }
@@ -89,18 +90,82 @@ dependencies {
     testImplementation("org.assertj:assertj-core")
 }
 
+jacoco {
+    toolVersion = "0.8.14"
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
     // jvmArgs("--enable-native-access=ALL-UNNAMED")
 }
 
-tasks.test {
-
+// Unit tests only — integration tests are excluded by tag and run via `integrationTest`.
+tasks.named<Test>("test") {
+    useJUnitPlatform {
+        excludeTags("integration")
+    }
     testLogging {
         events("passed", "skipped", "failed", "standardOut", "standardError")
         showStandardStreams = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
+    finalizedBy(tasks.named("jacocoTestReport"))
+}
+
+// Integration tests (Testcontainers) — run explicitly, not part of the unit gate.
+tasks.register<Test>("integrationTest") {
+    description = "Runs integration tests (tagged 'integration')."
+    group = "verification"
+    useJUnitPlatform {
+        includeTags("integration")
+    }
+    testLogging {
+        events("passed", "skipped", "failed", "standardOut", "standardError")
+        showStandardStreams = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco"))
+    }
+}
+
+// Coverage gate for application logic only. Thresholds are set from the measured
+// unit-test baseline (2026-08-30: 142 unit tests, INSTRUCTION 80.8% / LINE 79.2% /
+// BRANCH 69.3% / METHOD 81.4%) and ramp up non-decreasingly (DEVPLAN_UNITSTESTS-RULES.md §3).
+// Documented exclusions (narrow, per rules): mapper.* (MapStruct-generated), dto.*, model.*
+// (Lombok POJOs), config.account/config.async (Spring @Configuration wiring), client.FeignConfig.
+tasks.jacocoTestCoverageVerification {
+    dependsOn(tasks.test)
+    violationRules {
+        rule {
+            element = "CLASS"
+            includes = listOf(
+                "faang.school.accountservice.service.*",
+                "faang.school.accountservice.scheduler.*",
+                "faang.school.accountservice.aspects.*",
+                "faang.school.accountservice.controller.*",
+                "faang.school.accountservice.converter.*",
+                "faang.school.accountservice.config.context.*",
+                "faang.school.accountservice.exeption.GlobalExceptionHandler",
+                "faang.school.accountservice.client.FeignUserInterceptor"
+            )
+            limit {
+                counter = "INSTRUCTION"
+                value = "COVEREDRATIO"
+                minimum = "0.75".toBigDecimal()
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
 tasks.bootJar {
