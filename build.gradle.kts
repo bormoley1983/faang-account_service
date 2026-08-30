@@ -91,7 +91,7 @@ dependencies {
 }
 
 jacoco {
-    toolVersion = "0.8.14"
+    toolVersion = "0.8.15"
 }
 
 tasks.withType<Test> {
