@@ -28,7 +28,7 @@ docker run -p 8090:8090 account-service
 ## Configuration
 
 Main config: [src/main/resources/application.yaml](src/main/resources/application.yaml)  
-Test containers config: [src/test/java/faang/school/accountservice/util/BaseContextTest.java](src/test/java/faang/school/accountservice/util/BaseContextTest.java)
+Test config: [src/test/resources/application-test.yaml](src/test/resources/application-test.yaml)
 
 ## API (main endpoints)
 
@@ -56,7 +56,7 @@ Project uses Testcontainers for integration tests. CI config: [.github/workflows
 ## Suggested improvements
 
 - Move DB credentials to environment variables and document them in README; see configuration at [src/main/resources/application.yaml](src/main/resources/application.yaml).  
-- Add a docker-compose (or reference) to spin required infra (Postgres + Redis) for local dev; CI already uses Testcontainers: [src/test/java/faang/school/accountservice/util/BaseContextTest.java](src/test/java/faang/school/accountservice/util/BaseContextTest.java).  
+- Add a docker-compose example, or reference the root infrastructure stack, for local PostgreSQL and Redis dependencies.
 - Add an OpenAPI / Swagger usage example and endpoint to README (project already includes springdoc in [build.gradle.kts](build.gradle.kts)).  
 - Document important domain flows (balance auditing, free-account-number generation) and link to implementation: [`faang.school.accountservice.aspects.BalanceAuditingAspect`](src/main/java/faang/school/accountservice/aspects/BalanceAuditingAspect.java) and [`faang.school.accountservice.service.FreeAccountNumberService`](src/main/java/faang/school/accountservice/service/FreeAccountNumberService.java).  
 - Improve CONTRIBUTING section and add example requests for key endpoints (create account, credit/debit, open savings) referencing controllers above.
