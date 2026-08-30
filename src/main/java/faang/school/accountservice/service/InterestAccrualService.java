@@ -33,7 +33,12 @@ public class InterestAccrualService {
     @Retryable()
     @Transactional
     public CompletableFuture<Void> accrueInterestForAccount(Long accountId, LocalDate today) {
-        return CompletableFuture.runAsync(() -> doAccrue(accountId, today));
+        // Runs directly on the @Async executor thread so the @Transactional boundary
+        // (and @Retryable proxy) actually cover the accrual work. Do NOT wrap in
+        // CompletableFuture.runAsync here: that would move the work to a third thread
+        // outside the transaction, leaving detached entities and unobserved failures.
+        doAccrue(accountId, today);
+        return CompletableFuture.completedFuture(null);
     }
 
     private void doAccrue(Long accountId, LocalDate today) {

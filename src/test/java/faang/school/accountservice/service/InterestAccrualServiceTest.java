@@ -84,14 +84,12 @@ class InterestAccrualServiceTest {
         LocalDate today = LocalDate.of(2026, 8, 29);
         when(savingsAccountRepository.findById(accountId)).thenReturn(Optional.empty());
 
-        CompletableFuture<Void> result = interestAccrualService.accrueInterestForAccount(accountId, today);
-
-        java.util.concurrent.CompletionException exception = assertThrows(
-                java.util.concurrent.CompletionException.class,
-                result::join
+        // accrual now runs synchronously on the caller thread, so the exception
+        // propagates directly instead of being wrapped in a CompletionException.
+        assertThrows(
+                jakarta.persistence.EntityNotFoundException.class,
+                () -> interestAccrualService.accrueInterestForAccount(accountId, today)
         );
-
-        assertThat(exception).hasRootCauseInstanceOf(jakarta.persistence.EntityNotFoundException.class);
 
         verify(savingsAccountRepository, never()).save(ArgumentMatchers.any());
     }

@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${DATABASE_URL:jdbc:postgresql://host.docker.internal:5432/postgres}
+    url: ${DATABASE_URL:jdbc:postgresql://host.docker.internal:5432/faang}
     username: ${DATABASE_USERNAME:user}
-    password: ${DATABASE_PASSWORD:password}
+    password: ${DATABASE_PASSWORD}
     hikari:
       auto-commit: false
       schema: ${DATABASE_SCHEMA:account_service}
