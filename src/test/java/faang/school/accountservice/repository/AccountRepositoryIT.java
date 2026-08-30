@@ -56,7 +56,7 @@ public class AccountRepositoryIT extends BaseIntegrationTest {
         accountSeqRepository.deleteById(AccountType.SAVINGS);
         freeAccountRepository.deleteAll();
         
-        String uniqueAccountNumber = String.valueOf(System.nanoTime());
+        String uniqueAccountNumber = nextValidAccountNumber();
 
         Account account = Account.builder()
                 .number(uniqueAccountNumber)
@@ -142,7 +142,7 @@ public class AccountRepositoryIT extends BaseIntegrationTest {
     @Test
     void databaseAcceptsDebitAccountType() {
         Account debitAccount = Account.builder()
-                .number(String.valueOf(System.nanoTime()))
+                .number(nextValidAccountNumber())
                 .ownerId(ownerId)
                 .type(AccountType.DEBIT)
                 .currency(Currency.USD)

@@ -58,7 +58,7 @@ public class BalanceAuditServiceIT extends BaseIntegrationTest {
         accountRepository.deleteAll();
 
         account = new Account();
-        account.setNumber(String.valueOf(System.nanoTime()));
+        account.setNumber(nextValidAccountNumber());
         account.setOwnerId(1L);
         account.setStatus(AccountStatus.ACTIVE);
         account.setType(AccountType.SAVINGS);

@@ -9,8 +9,13 @@ import org.testcontainers.utility.DockerImageName;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 @Execution(ExecutionMode.SAME_THREAD)
 public abstract class BaseIntegrationTest {
+
+    private static final AtomicLong ACCOUNT_NUMBER_SEQUENCE =
+            new AtomicLong(9_000_000_000_000_000L);
    
     private static final DockerImageName POSTGRES_IMAGE = DockerImageName.parse("postgres:18-alpine");
     private static final DockerImageName REDIS_IMAGE = DockerImageName.parse("redis:8-alpine");
@@ -43,5 +48,9 @@ public abstract class BaseIntegrationTest {
 
         registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
         registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379));
+    }
+
+    protected static String nextValidAccountNumber() {
+        return Long.toString(ACCOUNT_NUMBER_SEQUENCE.incrementAndGet());
     }
 }
