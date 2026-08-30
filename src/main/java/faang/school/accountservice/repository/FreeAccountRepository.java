@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -32,6 +33,7 @@ public interface FreeAccountRepository extends JpaRepository<FreeAccountNumber, 
     int countByType(@Param("type") AccountType type);
 
     @Modifying
+    @Transactional
     @Query(value = """
             INSERT INTO free_account_numbers (type, account_number)
             SELECT :type, :baseNumber + sequence_offset

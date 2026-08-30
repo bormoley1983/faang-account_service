@@ -65,7 +65,7 @@ public class SavingsAccountControllerIT extends BaseIntegrationTest {
     void setUp() {
         balanceAuditRepository.deleteAll();
         savingsAccountRepository.deleteAll();
-        balanceRepository.deleteAll();
+        balanceRepository.deleteAllInBatch();
         accountRepository.deleteAll();
         tariffRepository.deleteAll();
 

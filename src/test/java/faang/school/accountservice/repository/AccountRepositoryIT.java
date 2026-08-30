@@ -51,9 +51,9 @@ public class AccountRepositoryIT extends BaseIntegrationTest {
     @BeforeEach
     void setUp() {
         savingsAccountRepository.deleteAll();
-        balanceRepository.deleteAll();
+        balanceRepository.deleteAllInBatch();
         accountRepository.deleteAll();
-        accountSeqRepository.deleteAll();
+        accountSeqRepository.deleteById(AccountType.SAVINGS);
         freeAccountRepository.deleteAll();
         
         String uniqueAccountNumber = String.valueOf(System.nanoTime());

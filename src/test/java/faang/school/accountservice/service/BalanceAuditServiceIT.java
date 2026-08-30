@@ -54,7 +54,7 @@ public class BalanceAuditServiceIT extends BaseIntegrationTest {
     public void setup() {
         balanceAuditRepository.deleteAll();
         savingsAccountRepository.deleteAll();
-        balanceRepository.deleteAll();
+        balanceRepository.deleteAllInBatch();
         accountRepository.deleteAll();
 
         account = new Account();
@@ -73,7 +73,7 @@ public class BalanceAuditServiceIT extends BaseIntegrationTest {
     public void tearDown() {
         balanceAuditRepository.deleteAll();
         savingsAccountRepository.deleteAll();
-        balanceRepository.deleteAll();
+        balanceRepository.deleteAllInBatch();
         accountRepository.deleteAll();
     }
 
