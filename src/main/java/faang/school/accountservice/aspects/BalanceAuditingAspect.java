@@ -69,7 +69,7 @@ public class BalanceAuditingAspect {
                 @Override
                 public void afterCommit() {
                     try {
-                        balanceAuditService.createSuccessfulAudit(balance, transactionId, operation);
+                        balanceAuditService.createSuccessfulAudit(balance, transactionId, operation, "AFTER_COMMIT");
                     } catch (RuntimeException auditException) {
                         log.error("Failed to persist successful balance audit for transaction {}",
                                 transactionId, auditException);
@@ -78,7 +78,7 @@ public class BalanceAuditingAspect {
             });
         } else {
             try {
-                balanceAuditService.createSuccessfulAudit(balance, transactionId, operation);
+                balanceAuditService.createSuccessfulAudit(balance, transactionId, operation, "IMMEDIATE");
             } catch (RuntimeException auditException) {
                 log.error("Failed to persist successful balance audit for transaction {}",
                         transactionId, auditException);

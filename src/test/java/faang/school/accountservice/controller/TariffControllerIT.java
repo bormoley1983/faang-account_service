@@ -136,4 +136,41 @@ public class TariffControllerIT extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.rateHistory[0]").value(1))
                 .andExpect(jsonPath("$.rateHistory[4]").value(19.99));
     }
+
+    // ── Authorization rejection tests ──────────────────────────────────
+
+    @Test
+    void testAddTariff_nonAdminRejected() throws Exception {
+        RegisterTariffDto request = RegisterTariffDto.builder()
+                .name("Premium Plan")
+                .rate(new BigDecimal("19.99"))
+                .build();
+
+        mockMvc.perform(post("/tariff")
+                        .header("x-user-id", "99999")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void testChangeTariff_nonAdminRejected() throws Exception {
+        RegisterTariffDto request = RegisterTariffDto.builder()
+                .name("Premium Plan")
+                .rate(new BigDecimal("19.99"))
+                .build();
+
+        mockMvc.perform(post("/tariff/" + testTariffId)
+                        .header("x-user-id", "99999")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void testGetTariff_unauthenticatedRejected() throws Exception {
+        mockMvc.perform(get("/tariff/" + testTariffId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
 }

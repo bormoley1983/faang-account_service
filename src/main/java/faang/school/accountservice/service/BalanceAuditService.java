@@ -25,10 +25,17 @@ public class BalanceAuditService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public BalanceAudit createSuccessfulAudit(Balance balance, UUID transactionId, String operation) {
+        return createSuccessfulAudit(balance, transactionId, operation, "IMMEDIATE");
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public BalanceAudit createSuccessfulAudit(Balance balance, UUID transactionId, String operation,
+                                              String commitStatus) {
         BalanceAudit audit = balanceMapper.toBalanceAudit(balance);
         audit.setTransactionId(transactionId);
         audit.setOperation(operation);
         audit.setOutcome(BalanceAuditOutcome.SUCCESS);
+        audit.setCommitStatus(commitStatus);
         BalanceAudit saved = balanceAuditRepository.save(audit);
         log.info("Audited successful balance action: {}", saved);
         return saved;
@@ -50,6 +57,7 @@ public class BalanceAuditService {
         audit.setOperation(operation);
         audit.setOutcome(BalanceAuditOutcome.FAILED);
         audit.setFailureReason(truncate(failureReason));
+        audit.setCommitStatus("IMMEDIATE");
         BalanceAudit saved = balanceAuditRepository.save(audit);
         log.info("Audited failed balance action: {}", saved);
         return saved;

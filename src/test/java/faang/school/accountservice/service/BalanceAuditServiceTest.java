@@ -69,6 +69,21 @@ class BalanceAuditServiceTest {
         assertThat(saved.getTransactionId()).isEqualTo(TRANSACTION_ID);
         assertThat(saved.getOperation()).isEqualTo(OPERATION);
         assertThat(saved.getOutcome()).isEqualTo(BalanceAuditOutcome.SUCCESS);
+        assertThat(saved.getCommitStatus()).isEqualTo("IMMEDIATE");
+        verify(balanceAuditRepository).save(audit);
+    }
+
+    @Test
+    void createSuccessfulAudit_withAfterCommitStatus_recordsCommitStatus() {
+        when(balanceMapper.toBalanceAudit(balance)).thenReturn(audit);
+        when(balanceAuditRepository.save(any(BalanceAudit.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        BalanceAudit saved = balanceAuditService.createSuccessfulAudit(
+                balance, TRANSACTION_ID, OPERATION, "AFTER_COMMIT");
+
+        assertThat(saved).isSameAs(audit);
+        assertThat(saved.getOutcome()).isEqualTo(BalanceAuditOutcome.SUCCESS);
+        assertThat(saved.getCommitStatus()).isEqualTo("AFTER_COMMIT");
         verify(balanceAuditRepository).save(audit);
     }
 
@@ -83,6 +98,7 @@ class BalanceAuditServiceTest {
         assertThat(saved).isSameAs(audit);
         assertThat(saved.getOutcome()).isEqualTo(BalanceAuditOutcome.FAILED);
         assertThat(saved.getFailureReason()).isEqualTo("boom");
+        assertThat(saved.getCommitStatus()).isEqualTo("IMMEDIATE");
         verify(balanceAuditRepository).save(audit);
     }
 

@@ -59,6 +59,9 @@ public class BalanceAudit {
     @Column(name = "failure_reason", length = 255)
     private String failureReason;
 
+    @Column(name = "commit_status", length = 16)
+    private String commitStatus;
+
     @Column(name = "balance_id", nullable = false)
     private Long balanceId;
 

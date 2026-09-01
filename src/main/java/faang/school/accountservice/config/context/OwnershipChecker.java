@@ -58,6 +58,23 @@ public class OwnershipChecker {
         }
     }
 
+    public void assertAdmin() {
+        Long currentUserId = userContext.getUserId();
+        if (currentUserId == null) {
+            throw new SecurityException("Authenticated user is required");
+        }
+        if (!isAdmin(currentUserId)) {
+            throw new SecurityException(
+                    "User " + currentUserId + " is not an admin and cannot perform this operation");
+        }
+    }
+
+    public void assertAuthenticated() {
+        if (userContext.getUserId() == null) {
+            throw new SecurityException("Authenticated user is required");
+        }
+    }
+
     private boolean isAdmin(Long userId) {
         Set<Long> adminIds = parseAdminIds();
         return adminIds.contains(userId);

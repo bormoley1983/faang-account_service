@@ -17,3 +17,5 @@ databaseChangeLog:
       file: db/changelog/changeset/V008__balance_audit_operation_metadata.sql
   - include:
       file: db/changelog/changeset/V009__cluster_lease.sql
+  - include:
+      file: db/changelog/changeset/V010__balance_audit_commit_status.sql

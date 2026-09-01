@@ -102,4 +102,73 @@ class OwnershipCheckerTest {
                 .isInstanceOf(SecurityException.class)
                 .hasMessage("User " + OTHER_USER_ID + " is not allowed to access account owned by " + OWNER_ID);
     }
+
+    @Test
+    void assertAdmin_whenNoAuthenticatedUser_throwsSecurityException() {
+        when(userContext.getUserId()).thenReturn(null);
+
+        assertThatThrownBy(() -> ownershipChecker.assertAdmin())
+                .isInstanceOf(SecurityException.class)
+                .hasMessage("Authenticated user is required");
+    }
+
+    @Test
+    void assertAdmin_whenUserIsAdmin_allows() {
+        when(userContext.getUserId()).thenReturn(ADMIN_ID);
+
+        assertThatCode(() -> ownershipChecker.assertAdmin()).doesNotThrowAnyException();
+    }
+
+    @Test
+    void assertAdmin_whenUserIsNotAdmin_throwsSecurityException() {
+        when(userContext.getUserId()).thenReturn(OTHER_USER_ID);
+
+        assertThatThrownBy(() -> ownershipChecker.assertAdmin())
+                .isInstanceOf(SecurityException.class)
+                .hasMessage("User " + OTHER_USER_ID + " is not an admin and cannot perform this operation");
+    }
+
+    @Test
+    void assertAuthenticated_whenNoAuthenticatedUser_throwsSecurityException() {
+        when(userContext.getUserId()).thenReturn(null);
+
+        assertThatThrownBy(() -> ownershipChecker.assertAuthenticated())
+                .isInstanceOf(SecurityException.class)
+                .hasMessage("Authenticated user is required");
+    }
+
+    @Test
+    void assertAuthenticated_whenUserIsAuthenticated_allowsEvenIfNotAdmin() {
+        when(userContext.getUserId()).thenReturn(OTHER_USER_ID);
+
+        assertThatCode(() -> ownershipChecker.assertAuthenticated()).doesNotThrowAnyException();
+    }
+
+    @Test
+    void parseAdminIds_whenRawIsNull_treatsUserAsNonAdmin() {
+        ReflectionTestUtils.setField(ownershipChecker, "adminUserIdsRaw", null);
+        when(userContext.getUserId()).thenReturn(ADMIN_ID);
+
+        assertThatThrownBy(() -> ownershipChecker.assertAdmin())
+                .isInstanceOf(SecurityException.class)
+                .hasMessage("User " + ADMIN_ID + " is not an admin and cannot perform this operation");
+    }
+
+    @Test
+    void parseAdminIds_whenRawIsBlank_treatsUserAsNonAdmin() {
+        ReflectionTestUtils.setField(ownershipChecker, "adminUserIdsRaw", "   ");
+        when(userContext.getUserId()).thenReturn(ADMIN_ID);
+
+        assertThatThrownBy(() -> ownershipChecker.assertAdmin())
+                .isInstanceOf(SecurityException.class)
+                .hasMessage("User " + ADMIN_ID + " is not an admin and cannot perform this operation");
+    }
+
+    @Test
+    void parseAdminIds_whenMultipleIdsWithWhitespaceAndEmptyTokens_parsesCorrectly() {
+        ReflectionTestUtils.setField(ownershipChecker, "adminUserIdsRaw", " 99 , , 77 ");
+        when(userContext.getUserId()).thenReturn(77L);
+
+        assertThatCode(() -> ownershipChecker.assertAdmin()).doesNotThrowAnyException();
+    }
 }

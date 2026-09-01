@@ -10,6 +10,8 @@ spring:
     default-schema: public
     liquibase-schema: public
 account:
+  security:
+    admin-user-ids: "12345"
   number:
     min-free: 10
     batch-size: 5

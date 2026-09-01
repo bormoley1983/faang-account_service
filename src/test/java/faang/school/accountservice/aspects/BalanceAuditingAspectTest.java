@@ -74,7 +74,8 @@ class BalanceAuditingAspectTest {
         verify(balanceAuditService).createSuccessfulAudit(
                 org.mockito.ArgumentMatchers.same(balance),
                 org.mockito.ArgumentMatchers.eq(TRANSACTION_ID),
-                org.mockito.ArgumentMatchers.eq("creditBalance")
+                org.mockito.ArgumentMatchers.eq("creditBalance"),
+                org.mockito.ArgumentMatchers.eq("IMMEDIATE")
         );
     }
 
@@ -115,7 +116,7 @@ class BalanceAuditingAspectTest {
 
             assertSame(balance, result);
             // Audit must NOT be written synchronously while the transaction is active.
-            verify(balanceAuditService, never()).createSuccessfulAudit(any(), any(), any());
+            verify(balanceAuditService, never()).createSuccessfulAudit(any(), any(), any(), any());
 
             List<TransactionSynchronization> synchronizations =
                     TransactionSynchronizationManager.getSynchronizations();
@@ -125,10 +126,12 @@ class BalanceAuditingAspectTest {
             for (TransactionSynchronization synchronization : synchronizations) {
                 synchronization.afterCommit();
             }
+            // After-commit path records AFTER_COMMIT status.
             verify(balanceAuditService).createSuccessfulAudit(
                     org.mockito.ArgumentMatchers.same(balance),
                     org.mockito.ArgumentMatchers.eq(TRANSACTION_ID),
-                    org.mockito.ArgumentMatchers.eq("creditBalance")
+                    org.mockito.ArgumentMatchers.eq("creditBalance"),
+                    org.mockito.ArgumentMatchers.eq("AFTER_COMMIT")
             );
         } finally {
             TransactionSynchronizationManager.clearSynchronization();
@@ -140,7 +143,7 @@ class BalanceAuditingAspectTest {
         Balance balance = Balance.builder().id(5L).build();
         when(joinPoint.proceed()).thenReturn(balance);
         doThrow(new RuntimeException("audit db down"))
-                .when(balanceAuditService).createSuccessfulAudit(any(), any(), any());
+                .when(balanceAuditService).createSuccessfulAudit(any(), any(), any(), any());
 
         Object result = aspect.auditBalanceOperation(joinPoint, auditable);
 
