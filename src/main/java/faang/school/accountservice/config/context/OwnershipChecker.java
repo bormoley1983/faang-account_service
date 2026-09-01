@@ -7,8 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Centralized ownership/authorization check for account-scoped operations.
@@ -85,9 +85,9 @@ public class OwnershipChecker {
             return Set.of();
         }
         return Arrays.stream(adminUserIdsRaw.split(","))
-                .map(String::trim)
+                .map(s -> s == null ? "" : s.trim())
                 .filter(s -> !s.isEmpty())
                 .map(Long::parseLong)
-                .collect(HashSet::new, HashSet::add, HashSet::addAll);
+                .collect(Collectors.toSet());
     }
 }

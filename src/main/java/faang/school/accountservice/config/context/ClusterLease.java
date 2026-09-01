@@ -1,7 +1,8 @@
 package faang.school.accountservice.config.context;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,10 +32,10 @@ public class ClusterLease {
             DELETE FROM cluster_lease WHERE name = :name AND holder = :holder
             """;
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
     private final String holderId;
 
-    public ClusterLease(JdbcTemplate jdbcTemplate) {
+    public ClusterLease(NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         // Unique per-JVM identifier: hostname + random suffix
         this.holderId = "node-" + System.nanoTime();
@@ -42,10 +43,10 @@ public class ClusterLease {
 
     public boolean tryAcquire(String leaseName) {
         try {
-            var results = jdbcTemplate.queryForList(CLAIM_SQL, java.util.Map.of(
-                    "name", leaseName,
-                    "holder", holderId
-            ), String.class);
+            var params = new MapSqlParameterSource()
+                    .addValue("name", leaseName)
+                    .addValue("holder", holderId);
+            var results = jdbcTemplate.queryForList(CLAIM_SQL, params, String.class);
             boolean acquired = !results.isEmpty() && results.get(0).equals(holderId);
             if (acquired) {
                 log.debug("Acquired cluster lease '{}' held by {}", leaseName, holderId);
@@ -62,10 +63,10 @@ public class ClusterLease {
 
     public void release(String leaseName) {
         try {
-            jdbcTemplate.update(RELEASE_SQL, java.util.Map.of(
-                    "name", leaseName,
-                    "holder", holderId
-            ));
+            var params = new MapSqlParameterSource()
+                    .addValue("name", leaseName)
+                    .addValue("holder", holderId);
+            jdbcTemplate.update(RELEASE_SQL, params);
             log.debug("Released cluster lease '{}'", leaseName);
         } catch (Exception e) {
             log.warn("Failed to release cluster lease '{}': {}", leaseName, e.getMessage());
