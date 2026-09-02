@@ -48,6 +48,13 @@ Test config: [src/test/resources/application-test.yaml](src/test/resources/appli
 
 Project uses Testcontainers for integration tests. CI config: [.github/workflows/ci.yml](.github/workflows/ci.yml)
 
+## Contribution workflow
+
+Submit changes to `dev-local` through a short-lived branch and pull request. The
+private Jenkins multibranch job discovers pushed pull-request revisions through
+authenticated manual or periodic indexing; direct pushes to `dev-local` are not
+part of the accepted workflow.
+
 ## Notes and links
 
 - Dockerfile: [Dockerfile](Dockerfile)  
