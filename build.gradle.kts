@@ -119,6 +119,10 @@ tasks.named<Test>("test") {
 tasks.register<Test>("integrationTest") {
     description = "Runs integration tests (tagged 'integration')."
     group = "verification"
+    dependsOn(tasks.named("testClasses"))
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    shouldRunAfter(tasks.named("test"))
     useJUnitPlatform {
         includeTags("integration")
     }

@@ -1,3 +1,6 @@
 @Library('faang-ci') _
 
-faangServiceCi(integrationTasks: ['integrationTest'])
+faangServiceCi(
+    integrationTasks: ['integrationTest'],
+    integrationDependencies: ['postgres', 'redis']
+)
